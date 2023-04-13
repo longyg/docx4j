@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
   <parent>
-	<groupId>org.docx4j</groupId>
+	<groupId>io.github.longyg</groupId>
 	<artifactId>docx4j-parent</artifactId>
 	<version>${revision}</version>
   </parent>
@@ -49,7 +49,7 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>org.docx4j</groupId>
+			<groupId>io.github.longyg</groupId>
 			<artifactId>docx4j-diffx</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -57,20 +57,20 @@
 		<!--  choose a docx4j-JAXB implementation, one ONLY of the 3 following :-->
 
 		<dependency>
-            <groupId>org.docx4j</groupId>
+            <groupId>io.github.longyg</groupId>
 			<artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		
 <!-- 
 		<dependency>
-            <groupId>org.docx4j</groupId>
+            <groupId>io.github.longyg</groupId>
 			<artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		
 		<dependency>
-            <groupId>org.docx4j</groupId>
+            <groupId>io.github.longyg</groupId>
 			<artifactId>docx4j-JAXB-MOXy</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -96,7 +96,7 @@
 
 		<!--  logging config files for log4j2 and logback can be found in:-->
 		<dependency>
-			<groupId>org.docx4j</groupId>
+			<groupId>io.github.longyg</groupId>
 			<artifactId>docx4j-samples-resources</artifactId>
 			<version>${project.version}</version>
 		</dependency>

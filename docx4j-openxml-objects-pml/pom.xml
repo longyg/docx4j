@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
   <parent>
-	<groupId>org.docx4j</groupId>
+	<groupId>io.github.longyg</groupId>
 	<artifactId>docx4j-parent</artifactId>
 	<version>${revision}</version>
   </parent>
@@ -79,7 +79,7 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>org.docx4j</groupId>
+			<groupId>io.github.longyg</groupId>
 			<artifactId>docx4j-openxml-objects</artifactId>
 			<version>${project.version}</version>
 		</dependency>
