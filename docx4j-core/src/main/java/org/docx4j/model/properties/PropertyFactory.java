@@ -139,8 +139,10 @@ public class PropertyFactory {
 		
 		if (tblPr.getTblW()!=null ){
     		// @w:w
-    		if (tblPr.getTblW().getW()!=null 
-    				&& tblPr.getTblW().getW() != BigInteger.ZERO) {
+    		if (tblPr.getTblW().getW()!=null
+					// @Fixed by longyg @2023.4.18
+					// change '!=' to 'equals' method
+    				&& !tblPr.getTblW().getW().equals(BigInteger.ZERO)) {
     			properties.add(new AdHocProperty("table-layout", "fixed", "table-layout", "fixed") );
     		} else if (tblPr.getTblW().getType()!=null
     				&& tblPr.getTblW().getType().equals("auto") ) {

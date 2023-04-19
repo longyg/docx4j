@@ -251,8 +251,9 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 			createCellProperties(cellProperties, trPr);
 			createCellProperties(cellProperties, tblPrEx);
 			cellPropertiesRowSize = cellProperties.size();
-				
-			
+
+			// @Fixed by longyg @2023.4.18
+			int columnIndex = 0;
 			for (TableModelCell cell : rowModel.getRowContents()) {
 				// process cell
 				
@@ -272,6 +273,9 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 
 					cellNode = createNode(doc, row, (inHeader ? NODE_TABLE_HEADER_CELL : NODE_TABLE_BODY_CELL));
 					row.appendChild(cellNode);
+					// @Fixed by longyg @2023.4.18
+					// create cell properties from tblStylePr
+					createCellProperties(cellProperties, table, rowIndex, columnIndex);
 					//Apply cell style
 					createCellProperties(cellProperties, cell.getTcPr());
 					processAttributes(context, cellProperties, cellNode);
@@ -292,6 +296,8 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 								cellNode);
 					}
 				}
+				// @Fixed by longyg @2023.4.18
+				columnIndex++;
 			}
 			//remove properties defined on row level
 			resetProperties(cellProperties, cellPropertiesTableSize);
@@ -425,6 +431,11 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 				}
 			}
 		}
+	}
+
+	// @Fixed by longyg @2023.4.18
+	protected void createCellProperties(List<Property> properties, AbstractTableWriterModel table, int rowIndex, int columnIndex) {
+
 	}
 
 	

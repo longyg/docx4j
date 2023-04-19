@@ -29,18 +29,13 @@ import org.docx4j.model.properties.paragraph.Indent;
 import org.docx4j.model.properties.paragraph.PBorderBottom;
 import org.docx4j.model.properties.paragraph.PBorderTop;
 import org.docx4j.model.properties.paragraph.PShading;
+import org.docx4j.model.properties.run.Strike;
+import org.docx4j.model.properties.run.Underline;
 import org.docx4j.model.styles.StyleTree;
 import org.docx4j.model.styles.StyleTree.AugmentedStyle;
 import org.docx4j.model.styles.Tree;
 import org.docx4j.openpackaging.packages.OpcPackage;
-import org.docx4j.wml.CTShd;
-import org.docx4j.wml.CTTblPrBase;
-import org.docx4j.wml.CTTblStylePr;
-import org.docx4j.wml.PPr;
-import org.docx4j.wml.RPr;
-import org.docx4j.wml.Style;
-import org.docx4j.wml.TcPr;
-import org.docx4j.wml.TrPr;
+import org.docx4j.wml.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -291,11 +286,73 @@ public class HtmlCssHelper {
     public static void createCss(OpcPackage opcPackage, RPr rPr, StringBuilder result) {
 
     	List<Property> properties = PropertyFactory.createProperties(opcPackage, rPr);
-    	
+
+		// @Fixed by longyg @2023.4.18
+		// merge strike and underline together to one text-decoration
+		Strike strike = null;
+		Underline underline = null;
     	for( Property p :  properties ) {
-    		appendNonNull(result, p);
+			if (p instanceof Strike) {
+				strike = (Strike) p;
+			} else if (p instanceof Underline) {
+				underline = (Underline) p;
+			} else {
+				appendNonNull(result, p);
+			}
     	}
+		// @Fixed by longyg @2023.4.18
+		// merge strike and underline together to one text-decoration
+		appendTextDecoration(strike, underline, result);
     }
+
+	// @Fixed by longyg @2023.4.18
+	// merge strike and underline together to one text-decoration
+	private static boolean hasStrike(Strike strike) {
+		if (strike != null) {
+			Object obj = strike.getObject();
+			if (obj instanceof BooleanDefaultTrue) {
+				BooleanDefaultTrue bdt = (BooleanDefaultTrue) obj;
+				return bdt.isVal();
+			}
+		}
+		return false;
+	}
+
+	private static boolean hasUnderline(Underline underline) {
+		if (underline != null) {
+			Object obj = underline.getObject();
+			if (obj instanceof U) {
+				U u = (U) obj;
+				return u.getVal() == null || !u.getVal().equals(UnderlineEnumeration.NONE);
+			}
+		}
+		return false;
+	}
+
+	private static void appendTextDecoration(Strike strike, Underline underline, StringBuilder result) {
+		boolean hasStrike = hasStrike(strike);
+		boolean hasUnderline = hasUnderline(underline);
+		if (!hasStrike && !hasUnderline) return;
+
+		StringBuilder td = new StringBuilder("text-decoration:");
+		if (hasStrike) {
+			td.append(" line-through");
+		}
+		if (hasUnderline) {
+			td.append(" underline");
+			U u = (U) underline.getObject();
+			UnderlineEnumeration sVal = u.getVal();
+			if (underline.getStylesMap().containsKey(sVal)) {
+				td.append(" ").append(underline.getStylesMap().get(sVal).value());
+			}
+			String color = u.getColor();
+			if (null != color && !"auto".equals(color)) {
+				td.append(" #").append(color);
+			}
+		}
+		td.append(";");
+		result.append(td);
+	}
 
     private static void appendNonNull(StringBuilder result, Property p) {
 		String prop = p.getCssProperty();

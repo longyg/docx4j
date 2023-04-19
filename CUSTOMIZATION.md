@@ -1,0 +1,41 @@
+# Customization
+
+Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
+the histories are listed in descending order by date.
+
+## 2023.4.18:
+
+First time fork, start customization based on [plutext/docx4j](https://github.com/plutext/docx4j) the latest branch at that
+time: **_VERSION_11_4_10_**.
+
+Renamed groupId to `io.github.longyg`, this is need to publish jar to myself maven central repository.
+
+The version is `11.4.10-<alphaX>` for customization based on version `11.4.10`.
+
+### Changes:
+
+1. Update one test case which can't pass on my local laptop: RunFontSelectorCalibriCheckBoxTest.testFont()
+2. Fix `table-layout: fixed` property issue at `org.docx4j.model.properties.PropertyFactory`:
+
+   ```
+   tblPr.getTblW().getW() != BigInteger.ZERO) 
+   ```
+   changed to:
+
+   ```
+   !tblPr.getTblW().getW().equals(BigInteger.ZERO)
+   ```
+3. Add method in `org.docx4j.convert.out.common.writer.AbstractTableWriter`:
+   
+   ```
+   protected void createCellProperties(List<Property> properties, 
+          AbstractTableWriterModel table, 
+          int rowIndex, int columnIndex) {}
+   ```
+
+   It is implemented in subclass.
+4. Merge strike and underline property to single text-decoration css in `org.docx4j.convert.out.html.HtmlCssHelper`.
+   Also add color and style of underline if defined.
+
+5. Enhance underline handling, supports underline color and underline style.
+   `org.docx4j.model.properties.run.Underline`
