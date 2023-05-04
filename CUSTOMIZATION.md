@@ -3,6 +3,15 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.5.4:
+### Changes:
+1. Add new extension point (`postProcess()` method) in `org.docx4j.convert.out.common.writer.AbstractTableWriter`, which will be implemented in subclass, purpose is to set additional attributes for created cell node.
+
+## 2023.4.28:
+### Changes:
+1. Solved one bug regarding highlight and shading in `org.docx4j.model.properties.PropertyFactory`. The shading should take effect only when highlight is not defined.
+2. Rewrote `HtmlCssHelper.createCssForStyles()`, delegate to `ExHtmlCssHelper.createCssForStyles()`, in that, implemented customized logic.
+
 ## 2023.4.18:
 
 First time fork, start customization based on [plutext/docx4j](https://github.com/plutext/docx4j) the latest branch at that

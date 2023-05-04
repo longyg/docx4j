@@ -274,8 +274,11 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 					cellNode = createNode(doc, row, (inHeader ? NODE_TABLE_HEADER_CELL : NODE_TABLE_BODY_CELL));
 					row.appendChild(cellNode);
 					// @Fixed by longyg @2023.4.18
-					// create cell properties from tblStylePr
-					createCellProperties(cellProperties, table, rowIndex, columnIndex);
+					// create table properties from tblStylePr
+					TableProperties tableProperties = new TableProperties();
+					createCellProperties(tableProperties, table, rowIndex, columnIndex);
+					cellProperties.addAll(tableProperties.getCellProperties());
+
 					//Apply cell style
 					createCellProperties(cellProperties, cell.getTcPr());
 					processAttributes(context, cellProperties, cellNode);
@@ -294,6 +297,11 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 						
 						XmlUtils.treeCopy( ((AbstractTableWriterModelCell)cell).getContent().getChildNodes(),
 								cellNode);
+
+						// @Fixed by longyg @2023.4.28:
+						// For pPr and rPr coming from table conditional formatting,
+						// need to apply to the paragraph under cell.
+						postProcess(context, cellNode, table, rowIndex, columnIndex);
 					}
 				}
 				// @Fixed by longyg @2023.4.18
@@ -433,9 +441,46 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 		}
 	}
 
-	// @Fixed by longyg @2023.4.18
-	protected void createCellProperties(List<Property> properties, AbstractTableWriterModel table, int rowIndex, int columnIndex) {
+	// @Fixed by longyg @2023.4.18:
+	// added customization point
+	protected void createCellProperties(TableProperties properties, AbstractTableWriterModel table, int rowIndex, int columnIndex) {
 
+	}
+	// @Fixed by longyg @2023.4.28:
+	// added customization point
+	protected void postProcess(AbstractWmlConversionContext context, Element cellNode,
+							   AbstractTableWriterModel table, int rowIndex, int columnIndex) {
+
+	}
+
+	public static class TableProperties {
+		private List<Property> cellProperties = new ArrayList<>();
+		private List<Property> paragraphProperties = new ArrayList<>();
+		private List<Property> runProperties = new ArrayList<>();
+
+		public void addCellProperty(Property property) {
+			cellProperties.add(property);
+		}
+
+		public void addParagraphProperty(Property property) {
+			paragraphProperties.add(property);
+		}
+
+		public void addRunProperty(Property property) {
+			runProperties.add(property);
+		}
+
+		public List<Property> getCellProperties() {
+			return cellProperties;
+		}
+
+		public List<Property> getParagraphProperties() {
+			return paragraphProperties;
+		}
+
+		public List<Property> getRunProperties() {
+			return runProperties;
+		}
 	}
 
 	

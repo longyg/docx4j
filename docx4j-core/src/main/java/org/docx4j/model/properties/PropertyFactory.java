@@ -292,7 +292,9 @@ public class PropertyFactory {
 		
 //		if (rPr.getShadow() != null)
 //			dest.setShadow(rPr.getShadow());
-		if (rPr.getShd() != null)
+		// @Fixed by longyg @2023.4.28:
+		// Only when highlight is not defined, the shading can take effect.
+		if (rPr.getHighlight() == null && rPr.getShd() != null)
 			properties.add(new RShading(rPr.getShd()));
 //		if (rPr.getSmallCaps() != null)
 //			dest.setSmallCaps(rPr.getSmallCaps());

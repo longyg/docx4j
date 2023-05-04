@@ -70,8 +70,16 @@ public class HtmlCssHelper {
 		result.append(".ins {text-decoration:none;background:#c0ffc0;padding:1px;}");
     	
     }
-	
-    public static void createCssForStyles(OpcPackage opcPackage, StyleTree styleTree, StringBuilder result) {
+
+	/**
+	 * @Fixed by longyg @2023.4.28:
+	 * Rewrote createCssForStyles() method
+	 */
+	public static void createCssForStyles(OpcPackage opcPackage, StyleTree styleTree, StringBuilder result) {
+		ExHtmlCssHelper.createCssForStyles(opcPackage, styleTree, result);
+	}
+
+    public static void createCssForStyles2(OpcPackage opcPackage, StyleTree styleTree, StringBuilder result) {
 
 		// First iteration - table styles
 		result.append("\n /* TABLE STYLES */ \n");    	
