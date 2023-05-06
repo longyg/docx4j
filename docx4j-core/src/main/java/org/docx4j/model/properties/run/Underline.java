@@ -146,12 +146,15 @@ public class Underline extends AbstractRunProperty {
 
 	// @Fixed by longyg @2023.4.18
 	// handle text-decoration with color and style
-	public static final Map<UnderlineEnumeration, HtmlUnderlineStyleEnum> STYLES_MAP = new HashMap<>();
+	protected static final Map<UnderlineEnumeration, HtmlUnderlineStyleEnum> STYLES_MAP = new HashMap<>();
 	static {
 		STYLES_MAP.put(UnderlineEnumeration.DOTTED, HtmlUnderlineStyleEnum.DOTTED);
+		STYLES_MAP.put(UnderlineEnumeration.DOTTED_HEAVY, HtmlUnderlineStyleEnum.DOTTED);
 		STYLES_MAP.put(UnderlineEnumeration.DOUBLE, HtmlUnderlineStyleEnum.DOUBLE);
 		STYLES_MAP.put(UnderlineEnumeration.DASH, HtmlUnderlineStyleEnum.DASHED);
+		STYLES_MAP.put(UnderlineEnumeration.DASHED_HEAVY, HtmlUnderlineStyleEnum.DASHED);
 		STYLES_MAP.put(UnderlineEnumeration.WAVE, HtmlUnderlineStyleEnum.WAVY);
+		STYLES_MAP.put(UnderlineEnumeration.WAVY_HEAVY, HtmlUnderlineStyleEnum.WAVY);
 	}
 
 	public Map<UnderlineEnumeration, HtmlUnderlineStyleEnum> getStylesMap() {

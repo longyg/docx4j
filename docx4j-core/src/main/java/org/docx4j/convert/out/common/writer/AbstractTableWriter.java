@@ -19,6 +19,7 @@
  */
 package org.docx4j.convert.out.common.writer;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.docx4j.convert.out.common.AbstractWmlConversionContext;
 import org.docx4j.jaxb.Context;
 import org.docx4j.model.properties.Property;
 import org.docx4j.model.properties.PropertyFactory;
+import org.docx4j.model.properties.run.FontColor;
 import org.docx4j.model.properties.table.AbstractBorder;
 import org.docx4j.model.properties.table.BorderBottom;
 import org.docx4j.model.properties.table.BorderLeft;
@@ -570,13 +572,56 @@ public abstract class AbstractTableWriter extends AbstractSimpleWriter {
 			}
 		}
 		if (pctPattern == -1) {
+			Color color = new Color(bgColor);
+			FontColor fontColor = createFontColor(color);
+			if (null != fontColor) {
+				properties.add(fontColor);
+			}
 			applyAttributes(context, properties, element);
 		}
 		else {
-			properties.add(createShading(fgColor, bgColor, pctPattern));
+			Shading shading = (Shading) createShading(fgColor, bgColor, pctPattern);
+			FontColor fontColor = createFontColor(shading);
+			properties.add(shading);
+			if (null != fontColor) {
+				properties.add(fontColor);
+			}
 			applyAttributes(context, properties, element);
 			properties.remove(properties.size() - 1);
 		}
+	}
+
+	protected FontColor createFontColor(Color color) {
+		Color white = new Color(Integer.parseInt("ffffff", 16));
+		Color black = new Color(Integer.parseInt("000000", 16));
+		if (distance(color, white) > distance(color, black)) {
+			org.docx4j.wml.Color c = new org.docx4j.wml.Color();
+			c.setVal("ffffff");
+			return new FontColor(c);
+		}
+		return null;
+	}
+
+	protected FontColor createFontColor(Shading shading) {
+		if (!(shading.getObject() instanceof CTShd)) {
+			return null;
+		}
+		CTShd shd = (CTShd) shading.getObject();
+		String fill = shd.getFill();
+		Color color = new Color(Integer.parseInt(fill, 16));
+		return createFontColor(color);
+	}
+
+	protected int distance(Color color1, Color color2) {
+		int r1 = color1.getRed();
+		int g1 = color1.getGreen();
+		int b1 = color1.getBlue();
+		int r2 = color2.getRed();
+		int g2 = color2.getGreen();
+		int b2 = color2.getBlue();
+		return (Math.max(r1, r2) - Math.min(r1, r2))
+				+ (Math.max(g1, g2) - Math.min(g1, g2))
+				+ (Math.max(b1, b2) - Math.min(b1, b2));
 	}
 
 	protected int extractPattern(String pattern) {

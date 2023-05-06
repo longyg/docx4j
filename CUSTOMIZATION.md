@@ -3,16 +3,22 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
-## 2023.5.4:
-### Changes:
+## 2023.5.6
+### Changes
+1. When color is set as `auto` in Word, it should be calculated if it should be white or black according to shading.
+   Enhanced `AbstractTableWriter` to handle auto font color for table cell.
+2. Update `Underline` to map Word's heavy underline to corresponding HTML non-heavy underline.
+
+## 2023.5.4
+### Changes
 1. Add new extension point (`postProcess()` method) in `org.docx4j.convert.out.common.writer.AbstractTableWriter`, which will be implemented in subclass, purpose is to set additional attributes for created cell node.
 
-## 2023.4.28:
-### Changes:
+## 2023.4.28
+### Changes
 1. Solved one bug regarding highlight and shading in `org.docx4j.model.properties.PropertyFactory`. The shading should take effect only when highlight is not defined.
 2. Rewrote `HtmlCssHelper.createCssForStyles()`, delegate to `ExHtmlCssHelper.createCssForStyles()`, in that, implemented customized logic.
 
-## 2023.4.18:
+## 2023.4.18
 
 First time fork, start customization based on [plutext/docx4j](https://github.com/plutext/docx4j) the latest branch at that
 time: **_VERSION_11_4_10_**.
@@ -21,7 +27,7 @@ Renamed groupId to `io.github.longyg`, this is need to publish jar to myself mav
 
 The version is `11.4.10-<alphaX>` for customization based on version `11.4.10`.
 
-### Changes:
+### Changes
 
 1. Update one test case which can't pass on my local laptop: RunFontSelectorCalibriCheckBoxTest.testFont()
 2. Fix `table-layout: fixed` property issue at `org.docx4j.model.properties.PropertyFactory`:
