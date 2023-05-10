@@ -51,7 +51,7 @@ public class HtmlCssHelper {
 	//Temporary maps that get used in applyAttributes, they are kept here to be able to reuse it
 	private static ThreadLocal<Map<String, Property>> threadLocalTempMap = new ThreadLocal<Map<String, Property>>();
 		
-    public static void createDefaultCss(boolean hasDefaultHeader, boolean hasDefaultFooter, StringBuilder result) {
+    public static void createDefaultCss2(boolean hasDefaultHeader, boolean hasDefaultFooter, StringBuilder result) {
     	//TODO: This method needs to be replaced with something similar to the LayoutMasterSetBuilder of fo
 		result.append("/*paged media */ div.header {display: none }");
 		result.append("div.footer {display: none } /*@media print { */");
@@ -70,6 +70,14 @@ public class HtmlCssHelper {
 		result.append(".ins {text-decoration:none;background:#c0ffc0;padding:1px;}");
     	
     }
+
+	/**
+	 * @Fixed by longyg @2023.5.9:
+	 * Rewrote createDefaultCss() method
+	 */
+	public static void createDefaultCss(boolean hasDefaultHeader, boolean hasDefaultFooter, StringBuilder result) {
+		ExHtmlCssHelper.createDefaultCss(hasDefaultHeader, hasDefaultFooter, result);
+	}
 
 	/**
 	 * @Fixed by longyg @2023.4.28:

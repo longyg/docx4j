@@ -91,7 +91,7 @@ public abstract class AbstractWordXmlPicture {
         try {
             // Create a DOM builder and parse the fragment
             Document document = XmlUtils.getNewDocumentBuilder().newDocument();
-            Element imageElement  = document.createElement("img");
+			Element imageElement  = document.createElement("img");
 
             if (src !=null && !src.equals(""))
             {
@@ -143,8 +143,16 @@ public abstract class AbstractWordXmlPicture {
 
                 imageElement = linkElement;
             }
-            
-            document.appendChild(imageElement);
+
+			// @Fixed by longyg @2023.5.9:
+			// create additional div as img's parent, if the img is rotated
+			Element divElement = createDivElement(document);
+			if (null != divElement) {
+				divElement.appendChild(imageElement);
+				document.appendChild(divElement);
+			} else {
+				document.appendChild(imageElement);
+			}
             
             return document;
             
@@ -155,6 +163,16 @@ public abstract class AbstractWordXmlPicture {
         }
         
     }
+
+	protected Element createDivElement(Document document) {
+		if (null == dimensions || null == style) return null;
+		if (style.contains("rotate(90deg)") || style.contains("rotate(270deg)")) {
+			Element div = document.createElement("div");
+			div.setAttribute("style", "height: " + dimensions.width + "px");
+			return div;
+		}
+		return null;
+	}
 
 	protected Document createXslFoImageElement()
     {

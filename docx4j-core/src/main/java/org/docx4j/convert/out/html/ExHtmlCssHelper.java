@@ -32,6 +32,16 @@ public class ExHtmlCssHelper {
     private ExHtmlCssHelper() {
     }
 
+    public static void createDefaultCss(boolean hasDefaultHeader, boolean hasDefaultFooter, StringBuilder result) {
+        result.append("/*paged media */");
+        result.append("@page { size: A4; margin: 10%; @top-center {");
+        result.append("content: element(header) } @bottom-center {");
+        result.append("content: element(footer) } }");
+
+        result.append("/*element styles*/ .del  {text-decoration:line-through;color:red;} ");
+        result.append(".ins {text-decoration:none;background:#c0ffc0;padding:1px;}");
+    }
+
     /**
      * It is very important that the classes order defined in head style, because that will decide the display priority in browser.
      * Based on word style priority, the order should be:

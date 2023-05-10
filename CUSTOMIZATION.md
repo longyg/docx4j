@@ -3,6 +3,11 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.5.9
+### Changes
+1. Rewrite `HtmlCssHelper.createDefaultCss` by `ExHtmlCssHelper.createDefaultCss`, do not generate header and footer css, because those styles will impact HTML export to word.
+2. Enhance image handling in `AbstractWordXmlPicture`, generate additional `div` element with height style as parent of `img` in case the image is rotated.
+
 ## 2023.5.6
 ### Changes
 1. When color is set as `auto` in Word, it should be calculated if it should be white or black according to shading.
