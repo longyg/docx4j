@@ -6,6 +6,7 @@ import org.docx4j.model.styles.StyleTree;
 import org.docx4j.model.styles.Tree;
 import org.docx4j.openpackaging.packages.OpcPackage;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
 import org.docx4j.wml.CTTblStylePr;
 import org.docx4j.wml.RPr;
 import org.docx4j.wml.STTblStyleOverrideType;
@@ -28,6 +29,7 @@ public class ExHtmlCssHelper {
     public static final String DOC_DEFAULTS_CSS_NAME = "DocDefaults";
     private static final String FONT_WEIGHT = "font-weight";
     private static final String DEFAULT_FONT_WEIGHT_CSS = FONT_WEIGHT + ": normal;";
+    private static final List<String> HEADING_STYLE_NAMES = List.of("heading 1", "heading 2", "heading 3", "heading 4", "heading 5", "heading 6");
 
     private ExHtmlCssHelper() {
     }
@@ -55,7 +57,7 @@ public class ExHtmlCssHelper {
         Set<Style> addedPStyles = new HashSet<>();
 
         // The doc default styles have the lowest priority, should be added at first.
-        createCssForDocDefault(opcPackage, styleTree, result, addedPStyles);
+        createCssForDocDefault(wmlPackage, styleTree, result, addedPStyles);
 
         // Next, create css for table styles
         createCssForTableStyles(wmlPackage, styleTree, result);
@@ -142,11 +144,11 @@ public class ExHtmlCssHelper {
         });
     }
 
-    private static void createCssForDocDefault(OpcPackage opcPackage, StyleTree styleTree, StringBuilder result, Set<Style> addedPStyles) {
+    private static void createCssForDocDefault(WordprocessingMLPackage wmlPackage, StyleTree styleTree, StringBuilder result, Set<Style> addedPStyles) {
         result.append("\n /* DOC DEFAULT STYLES */ \n");
         Style docDefaultStyle = getDocDefaultStyle(styleTree);
         if (null != docDefaultStyle) {
-            appendParagraphStyle(opcPackage, docDefaultStyle, result);
+            appendParagraphStyle(wmlPackage, docDefaultStyle, result);
             addedPStyles.add(docDefaultStyle);
         }
     }
@@ -194,24 +196,24 @@ public class ExHtmlCssHelper {
         return null;
     }
 
-    private static void appendParagraphStyle(OpcPackage opcPackage, Style s, StringBuilder result) {
-        appendPStyle(opcPackage, s, s.getStyleId(), result);
+    private static void appendParagraphStyle(WordprocessingMLPackage wmlPackage, Style s, StringBuilder result) {
+        appendPStyle(wmlPackage, s, s.getStyleId(), result);
     }
 
-    private static void appendPStyle(OpcPackage opcPackage, Style s, String cssName, StringBuilder result) {
+    private static void appendPStyle(WordprocessingMLPackage wmlPackage, Style s, String cssName, StringBuilder result) {
         StringBuilder sb = new StringBuilder();
         sb.append(".").append(cssName).append(" {display:block;");
         if (s.getPPr() == null) {
             log.debug("null pPr for style '{}'", s.getStyleId());
         } else {
-            HtmlCssHelper.createCss(opcPackage, s.getPPr(), sb, false, false);
+            HtmlCssHelper.createCss(wmlPackage, s.getPPr(), sb, false, false);
         }
         if (s.getRPr() == null) {
             log.debug("null rPr for style '{}'", s.getStyleId());
         } else {
-            HtmlCssHelper.createCss(opcPackage, s.getRPr(), sb);
+            HtmlCssHelper.createCss(wmlPackage, s.getRPr(), sb);
         }
-        appendFontStyles(s, sb);
+        appendHeadingsFontStyle(wmlPackage, s, sb);
         sb.append("}\n");
         result.append(sb);
     }
@@ -237,10 +239,38 @@ public class ExHtmlCssHelper {
         return null;
     }
 
-    public static void appendFontStyles(Style style, StringBuilder result) {
-        if (null == style || null == style.getRPr()) return;
-        String fontWeight = getFontWeight(style.getRPr());
+    /**
+     * For headings, the font weight property must be generated, because browser has default font-weight as bold.
+     */
+    public static void appendHeadingsFontStyle(WordprocessingMLPackage wmlPackage, Style style, StringBuilder result) {
+        if (!isHeadingStyle(style)) return;
+        StyleDefinitionsPart styleDefinitionsPart = null;
+        if (null != wmlPackage && null != wmlPackage.getMainDocumentPart()) {
+            styleDefinitionsPart = wmlPackage.getMainDocumentPart().getStyleDefinitionsPart();
+        }
+        String fontWeight = getFontWeight(style, styleDefinitionsPart);
         appendFontWeight(fontWeight, result);
+    }
+
+    private static boolean isHeadingStyle(Style style) {
+        if (null == style) return false;
+        return HEADING_STYLE_NAMES.contains(style.getName().getVal());
+    }
+
+    private static String getFontWeight(Style style, StyleDefinitionsPart styleDefinitionsPart) {
+        Bold bold = findBoldRecursively(style, styleDefinitionsPart);
+        return bold == null ? DEFAULT_FONT_WEIGHT_CSS : bold.getCssProperty();
+    }
+
+    private static Bold findBoldRecursively(Style style, StyleDefinitionsPart styleDefinitionsPart) {
+        if (null == style || null == style.getRPr()) return null;
+        if (style.getRPr().getB() != null) return new Bold(style.getRPr().getB());
+        Style.BasedOn basedOn = style.getBasedOn();
+        if (null != basedOn && null != styleDefinitionsPart) {
+            Style basedOnStyle = styleDefinitionsPart.getStyleById(basedOn.getVal());
+            return findBoldRecursively(basedOnStyle, styleDefinitionsPart);
+        }
+        return null;
     }
 
     public static void appendFontWeight(String fontWeightCss, StringBuilder result) {
@@ -260,15 +290,6 @@ public class ExHtmlCssHelper {
             result.replace(i, endIndex + 1, fontWeightCss);
         }
     }
-
-    private static String getFontWeight(RPr rPr) {
-        if (rPr.getB() != null) {
-            Bold bold = new Bold(rPr.getB());
-            return bold.getCssProperty();
-        }
-        return DEFAULT_FONT_WEIGHT_CSS;
-    }
-
 
     public static void walk(Tree<StyleTree.AugmentedStyle> tree, Consumer<Style> consumer) {
         for (Node<StyleTree.AugmentedStyle> n : tree.toList()) {

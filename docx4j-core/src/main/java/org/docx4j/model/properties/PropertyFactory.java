@@ -21,6 +21,7 @@ package org.docx4j.model.properties;
 
 import org.docx4j.Docx4jProperties;
 import org.docx4j.XmlUtils;
+import org.docx4j.model.PropertyResolver;
 import org.docx4j.model.properties.paragraph.Bidi;
 import org.docx4j.model.properties.paragraph.Indent;
 import org.docx4j.model.properties.paragraph.Justification;
@@ -61,20 +62,11 @@ import org.docx4j.model.properties.table.CellMarginTop;
 import org.docx4j.model.properties.table.tc.Shading;
 import org.docx4j.model.properties.table.tc.TextDir;
 import org.docx4j.openpackaging.packages.OpcPackage;
-import org.docx4j.wml.CTTblPrBase;
-import org.docx4j.wml.CTTblStylePr;
-import org.docx4j.wml.Highlight;
-import org.docx4j.wml.JcEnumeration;
-import org.docx4j.wml.PPr;
+import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.utils.ShadingUtil;
+import org.docx4j.wml.*;
 import org.docx4j.wml.PPrBase.PBdr;
 import org.docx4j.wml.PPrBase.Spacing;
-import org.docx4j.wml.ParaRPr;
-import org.docx4j.wml.RPr;
-import org.docx4j.wml.TblBorders;
-import org.docx4j.wml.TcMar;
-import org.docx4j.wml.TcPr;
-import org.docx4j.wml.TcPrInner;
-import org.docx4j.wml.TrPr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.css.CSSValue;
@@ -322,6 +314,176 @@ public class PropertyFactory {
 //			dest.setWebHidden(rPr.getWebHidden());
 		
 		return properties;		
+	}
+
+	/**
+	 * Calculate font color if the val of color is 'auto', it should be calculated according to background color defined by shading.
+	 * If no shading, then font color is fixed as black.
+	 */
+	public static FontColor getFontColor(OpcPackage wmlPackage, RPr rPr, PPr pPr) {
+		Color color = rPr.getColor();
+		String val = color.getVal();
+		if (!val.equals("auto")) {
+			return new FontColor(color);
+		}
+
+		PropertyResolver propertyResolver = getPropertyResolver(wmlPackage);
+		String rStyleId = null;
+		if (null != rPr.getRStyle()) {
+			rStyleId = rPr.getRStyle().getVal();
+		}
+		String pStyleId = null;
+		if (null != pPr && pPr.getPStyle() != null) {
+			pStyleId = pPr.getPStyle().getVal();
+		}
+
+		// if there is shading, should calculate font color according to shading.
+		// 1. check <w:shd> of RPr
+		if (rPr.getShd() != null) {
+			return ShadingUtil.createFontColor(ShadingUtil.calcShd(rPr.getShd()));
+		}
+
+		// 2. check <w:shd> from rPr of rStyle
+		if (null != rStyleId && null != propertyResolver) {
+			RPr effectiveRPr = propertyResolver.getEffectiveRPr(rPr.getRStyle().getVal());
+			if (null != effectiveRPr && null != effectiveRPr.getShd()) {
+				return ShadingUtil.createFontColor(ShadingUtil.calcShd(effectiveRPr.getShd()));
+			}
+		}
+
+		// 3. check <w:shd> from rPr of pStyle
+		if (null != pStyleId && null != propertyResolver) {
+			RPr effectiveRPr = propertyResolver.getEffectiveRPr(pStyleId);
+			if (null != effectiveRPr && null != effectiveRPr.getShd()) {
+				return ShadingUtil.createFontColor(ShadingUtil.calcShd(effectiveRPr.getShd()));
+			}
+		}
+
+		// 4. check <w:shd> of PPr
+		if (null != pPr && pPr.getShd() != null) {
+			return ShadingUtil.createFontColor(ShadingUtil.calcShd(pPr.getShd()));
+		}
+
+		// 5. check <w:shd> from pPr of pStyle
+		if (null != pStyleId && null != propertyResolver) {
+			PPr effectivePPr = propertyResolver.getEffectivePPr(pStyleId);
+			if (null != effectivePPr && null != effectivePPr.getShd()) {
+				return ShadingUtil.createFontColor(ShadingUtil.calcShd(effectivePPr.getShd()));
+			}
+		}
+
+		// otherwise, default font color is black
+		Color c = new Color();
+		c.setVal("000000");
+		return new FontColor(c);
+	}
+
+	private static PropertyResolver getPropertyResolver(OpcPackage opcPackage) {
+		if (opcPackage instanceof WordprocessingMLPackage) {
+			WordprocessingMLPackage wordMLPackage = (WordprocessingMLPackage) opcPackage;
+			return wordMLPackage.getMainDocumentPart().getPropertyResolver();
+		}
+		return null;
+	}
+
+	public static List<Property> createProperties(OpcPackage wmlPackage, RPr rPr, PPr pPr) {
+
+		List<Property> properties = new ArrayList<Property>();
+
+		if (rPr.getB() != null)
+			properties.add(new Bold(rPr.getB()) );
+//		if (rPr.getBCs() != null)
+//			dest.setBCs(rPr.getBCs());
+		if (rPr.getBdr() != null)
+			properties.add(new RBorder(rPr.getBdr()));
+//		if (rPr.getCaps() != null)
+//			dest.setCaps(rPr.getCaps());
+		if (rPr.getColor() != null)
+			// @Fixed by longyg @2023.5.10
+			// resolve color val='auto' issue
+			properties.add(getFontColor(wmlPackage, rPr, pPr));
+//			properties.add(new FontColor(rPr.getColor()) );
+//		if (rPr.getCs() != null)
+//			dest.setCs(rPr.getCs());
+//		if (rPr.getDstrike() != null)
+//			dest.setDstrike(rPr.getDstrike());
+//		if (rPr.getEastAsianLayout() != null)
+//			dest.setEastAsianLayout(rPr.getEastAsianLayout());
+//		if (rPr.getEffect() != null)
+//			dest.setEffect(rPr.getEffect());
+//		if (rPr.getEm() != null)
+//			dest.setEm(rPr.getEm());
+//		if (rPr.getEmboss() != null)
+//			dest.setEmboss(rPr.getEmboss());
+//		if (rPr.getFitText() != null)
+//			dest.setFitText(rPr.getFitText());
+		if (rPr.getHighlight() != null)
+			properties.add(new HighlightColor(rPr.getHighlight()));
+		if (rPr.getI() != null)
+			properties.add(new Italics(rPr.getI()) );
+//		if (rPr.getICs() != null)
+//			dest.setICs(rPr.getICs());
+//		if (rPr.getImprint() != null)
+//			dest.setImprint(rPr.getImprint());
+//		if (rPr.getKern() != null)
+//			dest.setKern(rPr.getKern());
+		if (rPr.getLang() != null)
+			properties.add(new Lang(rPr.getLang()));
+//		if (rPr.getNoProof() != null)
+//			dest.setNoProof(rPr.getNoProof());
+//		if (rPr.getOMath() != null)
+//			dest.setOMath(rPr.getOMath());
+//		if (rPr.getOutline() != null)
+//			dest.setOutline(rPr.getOutline());
+//		if (rPr.getPosition() != null)
+//			dest.setPosition(rPr.getPosition());
+
+
+		// RFonts is done at the w:t level, via RunFontSelector
+//		if (rPr.getRFonts() != null)
+//			properties.add(new Font(wmlPackage, rPr.getRFonts() ) );
+
+
+//		if (rPr.getRPrChange() != null)
+//			dest.setRPrChange(rPr.getRPrChange());
+//		if (rPr.getRStyle() != null)
+//			dest.setRStyle(rPr.getRStyle());
+
+		if (rPr.getRtl() != null)
+			properties.add(new TextDirection(rPr.getRtl() ));
+
+//		if (rPr.getShadow() != null)
+//			dest.setShadow(rPr.getShadow());
+		// @Fixed by longyg @2023.4.28:
+		// Only when highlight is not defined, the shading can take effect.
+		if (rPr.getHighlight() == null && rPr.getShd() != null)
+			properties.add(new RShading(ShadingUtil.calcShd(rPr.getShd())));
+//		if (rPr.getSmallCaps() != null)
+//			dest.setSmallCaps(rPr.getSmallCaps());
+//		if (rPr.getSnapToGrid() != null)
+//			dest.setSnapToGrid(rPr.getSnapToGrid());
+		if (rPr.getSpacing() != null)
+			properties.add(new org.docx4j.model.properties.run.Spacing(rPr.getSpacing()));
+//		if (rPr.getSpecVanish() != null)
+//			dest.setSpecVanish(rPr.getSpecVanish());
+		if (rPr.getStrike() != null)
+			properties.add(new Strike(rPr.getStrike() ) );
+		if (rPr.getSz() != null)
+			properties.add(new FontSize(rPr.getSz() ) );
+//		if (rPr.getSzCs() != null)
+//			dest.setSzCs(rPr.getSzCs());
+		if (rPr.getU() != null)
+			properties.add(new Underline(rPr.getU() ) );
+//		if (rPr.getVanish() != null)
+//			dest.setVanish(rPr.getVanish());
+		if (rPr.getVertAlign() != null)
+			properties.add(new VerticalAlignment(rPr.getVertAlign()) );
+//		if (rPr.getW() != null)
+//			dest.setW(rPr.getW());
+//		if (rPr.getWebHidden() != null)
+//			dest.setWebHidden(rPr.getWebHidden());
+
+		return properties;
 	}
 
 	public static List<Property> createProperties(OpcPackage wmlPackage, ParaRPr rPr) {

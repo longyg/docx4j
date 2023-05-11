@@ -298,6 +298,30 @@ public class HtmlCssHelper {
     		appendNonNull(result, p);
     	}    
     }
+
+	// @Fixed by longyg @2023.5.11
+	// add new function for handling auto font color
+	public static void createCss(OpcPackage opcPackage, RPr rPr, PPr pPr, StringBuilder result) {
+
+		List<Property> properties = PropertyFactory.createProperties(opcPackage, rPr, pPr);
+
+		// @Fixed by longyg @2023.4.18
+		// merge strike and underline together to one text-decoration
+		Strike strike = null;
+		Underline underline = null;
+		for( Property p :  properties ) {
+			if (p instanceof Strike) {
+				strike = (Strike) p;
+			} else if (p instanceof Underline) {
+				underline = (Underline) p;
+			} else {
+				appendNonNull(result, p);
+			}
+		}
+		// @Fixed by longyg @2023.4.18
+		// merge strike and underline together to one text-decoration
+		appendTextDecoration(strike, underline, result);
+	}
     
     public static void createCss(OpcPackage opcPackage, RPr rPr, StringBuilder result) {
 

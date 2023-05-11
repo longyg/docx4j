@@ -3,6 +3,11 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.5.11
+### Changes
+1. The color is also possible be set as `auto` for text in paragraph, it should also be calculated based on shading. Enhanced `HtmlCssHelper` and `PropertyFactory` to support this.
+2. For headings, we need always set it's font-weight, because the default font-weight is `bold` in browser. However if it is not set in Word, it is by default `normal`. Enhanced `ExHtmlCssHelper` to support this. 
+
 ## 2023.5.9
 ### Changes
 1. Rewrite `HtmlCssHelper.createDefaultCss` by `ExHtmlCssHelper.createDefaultCss`, do not generate header and footer css, because those styles will impact HTML export to word.
@@ -10,7 +15,7 @@ the histories are listed in descending order by date.
 
 ## 2023.5.6
 ### Changes
-1. When color is set as `auto` in Word, it should be calculated if it should be white or black according to shading.
+1. When color is set as `auto` for table in Word, it should be calculated if it should be white or black according to shading.
    Enhanced `AbstractTableWriter` to handle auto font color for table cell.
 2. Update `Underline` to map Word's heavy underline to corresponding HTML non-heavy underline.
 
