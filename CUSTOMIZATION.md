@@ -3,6 +3,11 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.5.18
+### Changes
+1. Enhance `ListsToContentControls` to be able to get customized implementation according to `ListsToContentControlsFactory`. Users can provide themselves implementation class through `HTMLSettings`.
+2. Enhance `ExHtmlCssHelper`, it is able to create css styles for `marker` of list item. 
+
 ## 2023.5.11
 ### Changes
 1. The color is also possible be set as `auto` for text in paragraph, it should also be calculated based on shading. Enhanced `HtmlCssHelper` and `PropertyFactory` to support this.

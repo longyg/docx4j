@@ -67,7 +67,7 @@ public abstract class AbstractWmlExporter<CS extends AbstractConversionSettings,
 				 */
 			throw new Docx4JException("MainDocumentPart empty");
 		}
-		return Preprocess.process(wmlPackage, conversionSettings.getFeatures());
+		return Preprocess.process(wmlPackage, conversionSettings, conversionSettings.getFeatures());
 	}
 
 	@Override

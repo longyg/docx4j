@@ -22,6 +22,7 @@ package org.docx4j.convert.out.common;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.docx4j.convert.out.AbstractConversionSettings;
 import org.docx4j.convert.out.ConversionFeatures;
 import org.docx4j.convert.out.common.preprocess.BookmarkMover;
 import org.docx4j.convert.out.common.preprocess.Containerization;
@@ -128,7 +129,7 @@ public class Preprocess extends ConversionFeatures {
 	 * @return a preprocessed WordprocessingMLPackage
 	 * @throws Docx4JException
 	 */
-	public static WordprocessingMLPackage process(WordprocessingMLPackage wmlPackage, Set<String> features) throws Docx4JException {
+	public static WordprocessingMLPackage process(WordprocessingMLPackage wmlPackage, AbstractConversionSettings conversionSettings, Set<String> features) throws Docx4JException {
 
 //		log.debug(wmlPackage.getMainDocumentPart().getXML());		
 		
@@ -167,7 +168,7 @@ public class Preprocess extends ConversionFeatures {
 		}
 		if (features.contains(PP_HTML_COLLECT_LISTS)) {
 			log.debug("PP_HTML_COLLECT_LISTS");
-			ListsToContentControls.process(ret);
+			ListsToContentControls.process(ret, conversionSettings);
 //			log.debug(ret.getMainDocumentPart().getXML());
 		}
 		if (features.contains(PP_PDF_APACHEFOP_DISABLE_PAGEBREAK_FIRST_PARAGRAPH)) {

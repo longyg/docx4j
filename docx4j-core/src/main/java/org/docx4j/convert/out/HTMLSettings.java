@@ -32,6 +32,7 @@ public class HTMLSettings extends AbstractConversionSettings {
 	public static final String USER_SCRIPT = "userScript";
 	public static final String USER_BODY_TOP = "userBodyTop";
 	public static final String USER_BODY_TAIL = "userBodyTail";
+	public static final String LIST_TO_CONTENT_CONTROLS_IMPL_CLASS = "listsToContentControlsImplClass";
 	
 	public HTMLSettings() {
 		settings.put(CONDITIONAL_COMMENTS, Boolean.FALSE);
@@ -136,5 +137,13 @@ public class HTMLSettings extends AbstractConversionSettings {
 	
 	public ConversionHTMLScriptElementHandler getScriptElementHandler() {
 		return (ConversionHTMLScriptElementHandler)settings.get(SCRIPT_ELEMENT_HANDLER);
+	}
+
+	public void setListToContentControlsImplClass(String clazz) {
+		settings.put(LIST_TO_CONTENT_CONTROLS_IMPL_CLASS, clazz);
+	}
+
+	public String getListToContentControlsImplClass() {
+		return (String) settings.get(LIST_TO_CONTENT_CONTROLS_IMPL_CLASS);
 	}
 }

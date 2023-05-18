@@ -8,6 +8,7 @@ import java.util.List;
 import jakarta.xml.bind.JAXBElement;
 
 import org.docx4j.TraversalUtil;
+import org.docx4j.convert.out.AbstractConversionSettings;
 import org.docx4j.finders.SdtFinder;
 import org.docx4j.finders.TcFinder;
 import org.docx4j.model.PropertyResolver;
@@ -95,10 +96,14 @@ public class ListsToContentControls {
 		
 	}
 	
-	public static void process(WordprocessingMLPackage wmlPackage) {
+	public static void process(WordprocessingMLPackage wmlPackage, AbstractConversionSettings conversionSettings) {
 		//TODO: Convert to visitor behaviour here like TraversalUtil.visit with onlyBody = false
 		
-		ListsToContentControls lc = new ListsToContentControls(wmlPackage);
+		ListsToContentControls lc = ListsToContentControlsFactory.getInstance(wmlPackage, conversionSettings);
+
+		if (null == lc) {
+			lc = new ListsToContentControls(wmlPackage);
+		}
 		
 		if (lc.ndp==null) {
 			log.info("No NumberingDefinitionsPart, skipping");
@@ -210,7 +215,7 @@ public class ListsToContentControls {
 		
 	}
 	
-	private List<Object> groupContent(List<Object> bodyElts) {
+	protected List<Object> groupContent(List<Object> bodyElts) {
 		
 		// Reset state
 		listStack = new LinkedList<ListSpec>();

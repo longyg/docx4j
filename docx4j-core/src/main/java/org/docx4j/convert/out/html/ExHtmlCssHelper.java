@@ -1,19 +1,25 @@
 package org.docx4j.convert.out.html;
 
+import org.apache.commons.lang3.StringUtils;
+import org.docx4j.TraversalUtil;
+import org.docx4j.finders.ClassFinder;
+import org.docx4j.model.PropertyResolver;
+import org.docx4j.model.listnumbering.AbstractListNumberingDefinition;
+import org.docx4j.model.listnumbering.ListLevel;
+import org.docx4j.model.listnumbering.ListNumberingDefinition;
 import org.docx4j.model.properties.run.Bold;
 import org.docx4j.model.styles.Node;
 import org.docx4j.model.styles.StyleTree;
 import org.docx4j.model.styles.Tree;
 import org.docx4j.openpackaging.packages.OpcPackage;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.NumberingDefinitionsPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
-import org.docx4j.wml.CTTblStylePr;
-import org.docx4j.wml.RPr;
-import org.docx4j.wml.STTblStyleOverrideType;
-import org.docx4j.wml.Style;
+import org.docx4j.wml.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,8 +77,112 @@ public class ExHtmlCssHelper {
         // Next, create css for paragraph styles, exclude DocDefaults
         createCssForParagraphStyles(wmlPackage, styleTree, result, addedPStyles);
 
-        // Last, create css for character styles
+        // Next, create css for character styles
         createCssForCharacterStyles(wmlPackage, styleTree, result);
+
+        // Last, create css for numbering styles
+        createCssForNumberingStyles(wmlPackage, styleTree, result);
+    }
+
+    private static void createCssForNumberingStyles(WordprocessingMLPackage wmlPackage, StyleTree styleTree, StringBuilder result) {
+        result.append("\n /* NUMBERING STYLES */ \n");
+        PropertyResolver propertyResolver = wmlPackage.getMainDocumentPart().getPropertyResolver();
+        if (propertyResolver == null) return;
+
+        ClassFinder finder = new ClassFinder(P.class);
+        new TraversalUtil(wmlPackage.getMainDocumentPart().getContent(), finder);
+        Set<String> classNames = new HashSet<>();
+        for (Object o : finder.results) {
+            if (!(o instanceof P)) continue;
+            P paragraph = (P) o;
+            PPr pPr = propertyResolver.getEffectivePPr(paragraph.getPPr());
+            if (null == pPr) continue;
+            PPrBase.NumPr numPr = pPr.getNumPr();
+            if (null == numPr || numPr.getNumId() == null || null == numPr.getNumId().getVal()) continue;
+
+            BigInteger ilvl = numPr.getIlvl() == null ? BigInteger.ZERO : numPr.getIlvl().getVal();
+            String className = "ilvl-" + ilvl.intValue() + "-numId-" + numPr.getNumId().getVal().intValue();
+            if (classNames.contains(className)) continue;
+
+            String classStyles = resolveNumberingStyles(wmlPackage, styleTree, paragraph.getPPr(), numPr);
+            if (StringUtils.isNotBlank(classStyles)) {
+                result.append(".").append(className).append(">li::marker {").append(classStyles).append("}\n");
+                classNames.add(className);
+            }
+        }
+    }
+
+    private static Numbering.Num.LvlOverride findLvlOverride(ListNumberingDefinition lnd, BigInteger ilvl) {
+        if (null == lnd.getNumNode() || null == lnd.getNumNode().getLvlOverride()) return null;
+        for (Numbering.Num.LvlOverride lvlOverride : lnd.getNumNode().getLvlOverride()) {
+            if (null == lvlOverride.getIlvl()) continue;
+            if (lvlOverride.getIlvl().compareTo(ilvl) == 0) {
+                Lvl lvl = lvlOverride.getLvl();
+                if (null == lvl || null == lvl.getIlvl()) continue;
+                if (lvl.getIlvl().compareTo(ilvl) == 0) {
+                    return lvlOverride;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String resolveNumberingStyles(WordprocessingMLPackage wmlPackage, StyleTree styleTree, PPr pPr, PPrBase.NumPr numPr) {
+        StringBuilder styles = new StringBuilder();
+
+        BigInteger ilvl = numPr.getIlvl() == null ? BigInteger.ZERO : numPr.getIlvl().getVal();
+
+        PropertyResolver propertyResolver = wmlPackage.getMainDocumentPart().getPropertyResolver();
+
+        RPr effectiveRPr = propertyResolver.getEffectiveRPr(null, pPr);
+
+        NumberingDefinitionsPart ndp = wmlPackage.getMainDocumentPart().getNumberingDefinitionsPart();
+        if (null == ndp) {
+            HtmlCssHelper.createCss(wmlPackage, effectiveRPr, pPr, styles);
+            return styles.toString();
+        }
+        BigInteger numId = numPr.getNumId().getVal();
+        ListNumberingDefinition lnd = ndp.getInstanceListDefinitions().get(numId.toString());
+
+        if (null == lnd) {
+            HtmlCssHelper.createCss(wmlPackage, effectiveRPr, pPr, styles);
+            return styles.toString();
+        }
+
+        Numbering.Num.LvlOverride lvlOverride = findLvlOverride(lnd, ilvl);
+        if (null != lvlOverride && lvlOverride.getLvl().getRPr() != null) {
+            HtmlCssHelper.createCss(wmlPackage, lvlOverride.getLvl().getRPr(), lvlOverride.getLvl().getPPr(), styles);
+            return styles.toString();
+        }
+
+        AbstractListNumberingDefinition ald = lnd.getAbstractListDefinition();
+
+        int levelCount = ald.getLevelCount();
+        if (levelCount <= 0 && ald.hasLinkedStyle()) {
+            RPr linkedRPr = propertyResolver.getEffectiveRPr(ald.getLinkedStyleId());
+            PPr linkedPPr = propertyResolver.getEffectivePPr(ald.getLinkedStyleId());
+            if (null != linkedRPr) {
+                HtmlCssHelper.createCss(wmlPackage, linkedRPr, linkedPPr, styles);
+                return styles.toString();
+            }
+        }
+
+
+        ListLevel level = ald.getListLevels().get(ilvl.toString());
+        if (null != level) {
+            Lvl jaxbOverrideLvl = level.getJaxbOverrideLvl();
+            if (null != jaxbOverrideLvl && null != jaxbOverrideLvl.getRPr()) {
+                HtmlCssHelper.createCss(wmlPackage, jaxbOverrideLvl.getRPr(), jaxbOverrideLvl.getPPr(), styles);
+                return styles.toString();
+            }
+            Lvl jaxbAbstractLvl = level.getJaxbAbstractLvl();
+            if (null != jaxbAbstractLvl && null != jaxbAbstractLvl.getRPr()) {
+                HtmlCssHelper.createCss(wmlPackage, jaxbAbstractLvl.getRPr(), jaxbAbstractLvl.getPPr(), styles);
+                return styles.toString();
+            }
+        }
+        HtmlCssHelper.createCss(wmlPackage, effectiveRPr, pPr, styles);
+        return styles.toString();
     }
 
     private static void createCssForCharacterStyles(WordprocessingMLPackage wmlPackage, StyleTree styleTree, StringBuilder result) {
