@@ -10,6 +10,7 @@ import org.docx4j.model.listnumbering.ListNumberingDefinition;
 import org.docx4j.model.properties.run.Bold;
 import org.docx4j.model.styles.Node;
 import org.docx4j.model.styles.StyleTree;
+import org.docx4j.model.styles.StyleUtil;
 import org.docx4j.model.styles.Tree;
 import org.docx4j.openpackaging.packages.OpcPackage;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
@@ -20,9 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static org.docx4j.wml.STTblStyleOverrideType.*;
@@ -127,61 +126,82 @@ public class ExHtmlCssHelper {
         return null;
     }
 
+    private static void pushListLevelToStacks(ListLevel level, Deque<RPr> rPrStack, Deque<PPr> pPrStack) {
+        Lvl jaxbOverrideLvl = level.getJaxbOverrideLvl();
+        if (null != jaxbOverrideLvl && null != jaxbOverrideLvl.getRPr()) {
+            rPrStack.push(jaxbOverrideLvl.getRPr());
+            pPrStack.push(jaxbOverrideLvl.getPPr());
+        }
+        Lvl jaxbAbstractLvl = level.getJaxbAbstractLvl();
+        if (null != jaxbAbstractLvl && null != jaxbAbstractLvl.getRPr()) {
+            rPrStack.push(jaxbAbstractLvl.getRPr());
+            pPrStack.push(jaxbAbstractLvl.getPPr());
+        }
+    }
+
     private static String resolveNumberingStyles(WordprocessingMLPackage wmlPackage, StyleTree styleTree, PPr pPr, PPrBase.NumPr numPr) {
         StringBuilder styles = new StringBuilder();
+
+        Deque<RPr> rPrStack = new LinkedList<>();
+        Deque<PPr> pPrStack = new LinkedList<>();
 
         BigInteger ilvl = numPr.getIlvl() == null ? BigInteger.ZERO : numPr.getIlvl().getVal();
 
         PropertyResolver propertyResolver = wmlPackage.getMainDocumentPart().getPropertyResolver();
 
         RPr effectiveRPr = propertyResolver.getEffectiveRPr(null, pPr);
+        PPr effectivePPr = propertyResolver.getEffectivePPr(pPr);
 
         NumberingDefinitionsPart ndp = wmlPackage.getMainDocumentPart().getNumberingDefinitionsPart();
-        if (null == ndp) {
-            HtmlCssHelper.createCss(wmlPackage, effectiveRPr, pPr, styles);
-            return styles.toString();
-        }
-        BigInteger numId = numPr.getNumId().getVal();
-        ListNumberingDefinition lnd = ndp.getInstanceListDefinitions().get(numId.toString());
+        if (null != ndp) {
+            ListNumberingDefinition lnd = ndp.getInstanceListDefinitions().get(numPr.getNumId().getVal().toString());
+            if (null != lnd) {
+                Numbering.Num.LvlOverride lvlOverride = findLvlOverride(lnd, ilvl);
+                if (null != lvlOverride && lvlOverride.getLvl().getRPr() != null) {
+                    rPrStack.push(lvlOverride.getLvl().getRPr());
+                    pPrStack.push(lvlOverride.getLvl().getPPr());
+                }
 
-        if (null == lnd) {
-            HtmlCssHelper.createCss(wmlPackage, effectiveRPr, pPr, styles);
-            return styles.toString();
-        }
-
-        Numbering.Num.LvlOverride lvlOverride = findLvlOverride(lnd, ilvl);
-        if (null != lvlOverride && lvlOverride.getLvl().getRPr() != null) {
-            HtmlCssHelper.createCss(wmlPackage, lvlOverride.getLvl().getRPr(), lvlOverride.getLvl().getPPr(), styles);
-            return styles.toString();
-        }
-
-        AbstractListNumberingDefinition ald = lnd.getAbstractListDefinition();
-
-        int levelCount = ald.getLevelCount();
-        if (levelCount <= 0 && ald.hasLinkedStyle()) {
-            RPr linkedRPr = propertyResolver.getEffectiveRPr(ald.getLinkedStyleId());
-            PPr linkedPPr = propertyResolver.getEffectivePPr(ald.getLinkedStyleId());
-            if (null != linkedRPr) {
-                HtmlCssHelper.createCss(wmlPackage, linkedRPr, linkedPPr, styles);
-                return styles.toString();
+                ListLevel level = lnd.getLevel(ilvl.toString());
+                if (null != level) {
+                    pushListLevelToStacks(level, rPrStack, pPrStack);
+                } else {
+                    AbstractListNumberingDefinition ald = lnd.getAbstractListDefinition();
+                    if (null != ald) {
+                        int levelCount = ald.getLevelCount();
+                        if (levelCount > 0) {
+                            ListLevel lvl = ald.getListLevels().get(ilvl.toString());
+                            if (null != lvl) {
+                                pushListLevelToStacks(lvl, rPrStack, pPrStack);
+                            }
+                        } else if (ald.hasLinkedStyle()) {
+                            RPr linkedRPr = propertyResolver.getEffectiveRPr(ald.getLinkedStyleId());
+                            rPrStack.push(linkedRPr);
+                            PPr linkedPPr = propertyResolver.getEffectivePPr(ald.getLinkedStyleId());
+                            pPrStack.push(linkedPPr);
+                        }
+                    }
+                }
             }
         }
 
+        rPrStack.push(effectiveRPr);
+        pPrStack.push(effectivePPr);
 
-        ListLevel level = ald.getListLevels().get(ilvl.toString());
-        if (null != level) {
-            Lvl jaxbOverrideLvl = level.getJaxbOverrideLvl();
-            if (null != jaxbOverrideLvl && null != jaxbOverrideLvl.getRPr()) {
-                HtmlCssHelper.createCss(wmlPackage, jaxbOverrideLvl.getRPr(), jaxbOverrideLvl.getPPr(), styles);
-                return styles.toString();
-            }
-            Lvl jaxbAbstractLvl = level.getJaxbAbstractLvl();
-            if (null != jaxbAbstractLvl && null != jaxbAbstractLvl.getRPr()) {
-                HtmlCssHelper.createCss(wmlPackage, jaxbAbstractLvl.getRPr(), jaxbAbstractLvl.getPPr(), styles);
-                return styles.toString();
-            }
+        PPr resolvedPPr = ObjectFactory.get().createPPr();
+        while (!pPrStack.isEmpty() ) {
+            PPr curPPr = pPrStack.pop();
+            StyleUtil.apply(curPPr, resolvedPPr);
         }
-        HtmlCssHelper.createCss(wmlPackage, effectiveRPr, pPr, styles);
+
+        RPr resolvedRPr = ObjectFactory.get().createRPr();
+        while (!rPrStack.isEmpty()) {
+            RPr curRPr = rPrStack.pop();
+            StyleUtil.apply(curRPr, resolvedRPr);
+        }
+
+        HtmlCssHelper.createCss(wmlPackage, resolvedRPr, resolvedPPr, styles);
+
         return styles.toString();
     }
 
