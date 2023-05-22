@@ -95,10 +95,26 @@ public class ListsToContentControls {
 		
 		
 	}
+
+	public static void process(WordprocessingMLPackage wmlPackage) {
+		//TODO: Convert to visitor behaviour here like TraversalUtil.visit with onlyBody = false
+
+		ListsToContentControls lc = new ListsToContentControls(wmlPackage);
+
+		if (lc.ndp==null) {
+			log.info("No NumberingDefinitionsPart, skipping");
+			return;
+		}
+		lc.process();
+
+//		try {
+//			wmlPackage.save(new File("cc.docx"));
+//		} catch (Docx4JException e) {
+//			e.printStackTrace();
+//		}
+	}
 	
 	public static void process(WordprocessingMLPackage wmlPackage, AbstractConversionSettings conversionSettings) {
-		//TODO: Convert to visitor behaviour here like TraversalUtil.visit with onlyBody = false
-		
 		ListsToContentControls lc = ListsToContentControlsFactory.getInstance(wmlPackage, conversionSettings);
 
 		if (null == lc) {
@@ -110,12 +126,6 @@ public class ListsToContentControls {
 			return;
 		}
 		lc.process();
-		
-//		try {
-//			wmlPackage.save(new File("cc.docx"));
-//		} catch (Docx4JException e) {
-//			e.printStackTrace();
-//		}
 	}
 	
 	private void process() {

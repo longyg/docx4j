@@ -178,8 +178,11 @@ public class AbstractTableWriterModel extends TableModel {
 		
 		TrFinder trFinder = new TrFinder();
 		new TraversalUtil(tbl, trFinder);
-		
-		ensureFoTableBody(trFinder.getTrList()); // this is currently applied to HTML etc as well
+
+		// @Fixed by longyg @2023.5.22
+		// for HTML, do not apply this logic, because we found there is issue for handling colspan after making the
+		// last header row as body row... So comment out this as of now.
+		// ensureFoTableBody(trFinder.getTrList()); // this is currently applied to HTML etc as well
 		
 		int r = 0;
 		for (Tr tr : trFinder.getTrList()) {

@@ -6,6 +6,7 @@ the histories are listed in descending order by date.
 ## 2023.5.22
 ### Changes
 1. Enhance `PropertyFactory` to handle small caps/all caps for font, they are converted to specific css styles as well.
+2. Comment out `ensureFoTableBody()` method call in `AbstractTableWriterModel.build()`, because there is issue for handling colspan after making the last header row as body row.
 
 ## 2023.5.18
 ### Changes
