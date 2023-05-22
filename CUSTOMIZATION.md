@@ -3,6 +3,10 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.5.22
+### Changes
+1. Enhance `PropertyFactory` to handle small caps/all caps for font, they are converted to specific css styles as well.
+
 ## 2023.5.18
 ### Changes
 1. Enhance `ListsToContentControls` to be able to get customized implementation according to `ListsToContentControlsFactory`. Users can provide themselves implementation class through `HTMLSettings`.
