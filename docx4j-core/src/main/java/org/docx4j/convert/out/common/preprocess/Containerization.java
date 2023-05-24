@@ -19,39 +19,23 @@
  */
 package org.docx4j.convert.out.common.preprocess;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.xml.bind.JAXBElement;
-
 import org.docx4j.XmlUtils;
 import org.docx4j.jaxb.Context;
+import org.docx4j.model.PropertyResolver;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
-import org.docx4j.openpackaging.parts.WordprocessingML.CommentsPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.EndnotesPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.FooterPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.FootnotesPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.HeaderPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
+import org.docx4j.openpackaging.parts.WordprocessingML.*;
 import org.docx4j.openpackaging.parts.relationships.Namespaces;
 import org.docx4j.openpackaging.parts.relationships.RelationshipsPart;
 import org.docx4j.relationships.Relationship;
-import org.docx4j.wml.CTBorder;
-import org.docx4j.wml.CTShd;
+import org.docx4j.wml.*;
 import org.docx4j.wml.Comments.Comment;
-import org.docx4j.wml.P;
 import org.docx4j.wml.PPrBase.PBdr;
-import org.docx4j.wml.R;
-import org.docx4j.wml.RPr;
-import org.docx4j.wml.SdtBlock;
-import org.docx4j.wml.SdtContentBlock;
-import org.docx4j.wml.SdtPr;
-import org.docx4j.wml.Tag;
-import org.docx4j.wml.Tbl;
-import org.docx4j.wml.Tc;
-import org.docx4j.wml.Tr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * In Word, adjacent paragraphs with the same borders are enclosed in a single border
@@ -87,7 +71,7 @@ public class Containerization {
 		List<Object> elementList = null;
 		
 		mainDocument = wmlPackage.getMainDocumentPart();
-		groupAdjacentBorders(mainDocument.getJaxbElement().getBody().getContent());
+		groupAdjacentBorders(mainDocument, mainDocument.getJaxbElement().getBody().getContent());
 
 		relPart = mainDocument.getRelationshipsPart();
 		relList = relPart.getRelationships().getRelationship();
@@ -117,23 +101,23 @@ public class Containerization {
 				}
 			}
 			if ((elementList != null) && (!elementList.isEmpty())) {
-				groupAdjacentBorders(elementList);
+				groupAdjacentBorders(mainDocument, elementList);
 			}
 		}
 	}
 	
 
-	protected static void groupAdjacentBorders(List<Object> content) {
+	protected static void groupAdjacentBorders(MainDocumentPart mainDocument, List<Object> content) {
 		
 		List<Object> groupedContent = null;
-		groupedContent = groupBodyContent(content);
+		groupedContent = groupBodyContent(mainDocument, content);
 		if (groupedContent != null) {
 			content.clear();
 			content.addAll(groupedContent);
 		}
 	}
 		
-	private static void groupTable(Tbl table) {
+	private static void groupTable(MainDocumentPart mainDocument, Tbl table) {
 		
 		List<Object> cellElts = null;
 		Tr tr = null;
@@ -152,7 +136,7 @@ public class Containerization {
 						if (elemCe instanceof Tc) {
 							tc = (Tc)elemCe;
 							if (tc.getContent() != null) {
-								cellElts = groupBodyContent(tc.getContent());
+								cellElts = groupBodyContent(mainDocument, tc.getContent());
 								if (cellElts != null) {
 									tc.getContent().clear();
 									tc.getContent().addAll(cellElts);
@@ -165,7 +149,7 @@ public class Containerization {
 		}
 	}
 
-	private static List<Object> groupBodyContent(List<Object> bodyElts) {
+	private static List<Object> groupBodyContent(MainDocumentPart mainDocument, List<Object> bodyElts) {
 		
 		List<Object> resultElts = new ArrayList<Object>();
 		List<Object> paragraphElts = null;
@@ -196,9 +180,15 @@ public class Containerization {
 				currentShading = null;
 				if (paragraph.getPPr() != null ) {
 					// TODO: use effective ppr properties! 
-					// ie take styles into account				
-					currentBorders = paragraph.getPPr().getPBdr();
-					currentShading = paragraph.getPPr().getShd();
+					// ie take styles into account
+					// @Fixed by longyg @2023.5.24:
+					// use effective ppr, take styles into account
+					PropertyResolver propertyResolver = mainDocument.getPropertyResolver();
+					PPr effectivePPr = propertyResolver.getEffectivePPr(paragraph.getPPr());
+					currentBorders = effectivePPr.getPBdr();
+					currentShading = effectivePPr.getShd();
+					// currentBorders = paragraph.getPPr().getPBdr();
+					// currentShading = paragraph.getPPr().getShd();
 				}
 
 				if ( bordersChanged(currentBorders, lastBorders )) {
@@ -206,7 +196,7 @@ public class Containerization {
 					if (currentBorders == null) {
 						sdtBorders = null;
 					} else {
-						sdtBorders = createSdt(TAG_BORDERS);
+						sdtBorders = createSdt(getBordersTagVal(TAG_BORDERS, currentBorders));
 						resultElts.add(sdtBorders);
 					}
 				}
@@ -216,7 +206,7 @@ public class Containerization {
 					if (currentShading == null) {
 						sdtShading = null;
 					} else {
-						sdtShading = createSdt(TAG_SHADING);
+						sdtShading = createSdt(getShadingTagVal(TAG_SHADING, currentShading));
 						
 						// need to set margins, so there isn't a white strip
 						// between paragraphs.  hmm, model.properties.paragraph
@@ -231,7 +221,7 @@ public class Containerization {
 				}
 			}
 			else if (unwrapped instanceof Tbl) {
-				groupTable((Tbl)unwrapped);
+				groupTable(mainDocument, (Tbl)unwrapped);
 			}
 			if (sdtShading!=null) {
 				sdtShading.getSdtContent().getContent().add(o);
@@ -248,6 +238,36 @@ public class Containerization {
 			lastShading = currentShading;  
 		}
 		return resultElts;
+	}
+
+	// @Fixed by longyg @2023.5.24:
+	// add borders to tag value, then they can be extracted in SdtTagHandler
+	private static String getBordersTagVal(String tag, PBdr currentBorders) {
+		StringBuilder result = new StringBuilder(tag);
+		if (null == currentBorders) return result.toString();
+		CTBorder top = currentBorders.getTop();
+		if (null != top) {
+			result.append("&TopVal=").append(top.getVal().value()).append("&TopColor=").append(top.getColor())
+					.append("&TopSz=").append(top.getSz());
+		}
+		CTBorder bottom = currentBorders.getBottom();
+		if (null != bottom) {
+			result.append("&BottomVal=").append(bottom.getVal().value()).append("&BottomColor=").append(bottom.getColor())
+					.append("&BottomSz=").append(bottom.getSz());
+		}
+		return result.toString();
+	}
+
+	// @Fixed by longyg @2023.5.24:
+	// add shading to tag value, then they can be extracted in SdtTagHandler
+	private static String getShadingTagVal(String tag, CTShd shading) {
+		StringBuilder result = new StringBuilder(tag);
+		if (null == shading) return result.toString();
+		String fill = shading.getFill();
+		if (null != fill) {
+			result.append("&fill=").append(fill);
+		}
+		return result.toString();
 	}
 	
 	private static List<Object> groupRuns(List<Object> paragraphElts) {
@@ -351,7 +371,7 @@ public class Containerization {
 		// We'll use a tag, so the XSLT can detect that its supposed to do something special.
 		Tag tag = Context.getWmlObjectFactory().createTag();
 		tag.setVal(tagVal);
-		
+
 		sdtPr.setTag(tag);
 		if (rPr != null) {
 			sdtPr.getRPrOrAliasOrLock().add((RPr)XmlUtils.deepCopy(rPr));
@@ -387,7 +407,11 @@ public class Containerization {
 	private static boolean borderChanged(CTBorder currentBorder, CTBorder lastBorder) {
 		if (currentBorder != lastBorder) { 
 			if ((currentBorder != null) && (lastBorder != null)) {
-				return !currentBorder.getVal().equals(lastBorder.getVal());
+				return !currentBorder.getVal().equals(lastBorder.getVal())
+						|| !currentBorder.getColor().equals(lastBorder.getColor())
+						|| !currentBorder.getSz().equals(lastBorder.getSz())
+						|| !currentBorder.getSpace().equals(lastBorder.getSpace())
+						|| currentBorder.isShadow() != lastBorder.isShadow();
 			}
 			//one was null
 			return true;

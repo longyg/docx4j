@@ -3,6 +3,11 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.5.24
+### Changes
+1. Enhance preprocess in `Containerization`, get effective PPr to get effective borders and shading. Generate borders and shading to sdt tag value, for later use in customized `SdtTagHandler`.
+2. Ignore borders styles generation in common style for paragraph.
+
 ## 2023.5.22
 ### Changes
 1. Enhance `PropertyFactory` to handle small caps/all caps for font, they are converted to specific css styles as well.

@@ -336,7 +336,7 @@ public class ExHtmlCssHelper {
         if (s.getPPr() == null) {
             log.debug("null pPr for style '{}'", s.getStyleId());
         } else {
-            HtmlCssHelper.createCss(wmlPackage, s.getPPr(), sb, false, false);
+            HtmlCssHelper.createCss(wmlPackage, s.getPPr(), sb, true, false);
         }
         if (s.getRPr() == null) {
             log.debug("null rPr for style '{}'", s.getStyleId());
