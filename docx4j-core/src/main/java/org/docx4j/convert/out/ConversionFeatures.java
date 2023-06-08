@@ -136,6 +136,15 @@ public abstract class ConversionFeatures {
 	 */
 	public static final String PP_COMMON_TABLE_PARAGRAPH_STYLE_FIX = "pp.common.tbl-p-style-fix";
 
+	/**
+	 * @Fixed by longyg @2023.6.7:
+	 * <p>
+	 * Grouping multiple paragraphs between two headings as a section.
+	 *
+	 * This will be executed before containerization and collect lists.
+	 */
+	public static final String PP_HTML_SECTION_GROUPING = "pp.html.sectiongrouping";
+
 	
 	/** Default features, that get applied to a PDF conversion
 	 */

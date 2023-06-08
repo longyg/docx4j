@@ -141,7 +141,7 @@ public class ListsToContentControls {
 		// .. loop through them
 		for (SdtElement sdtEl : sdtFinder.getSdtList()) {
 			content = sdtEl.getSdtContent().getContent();
-			groupedContent = groupContent(content);
+			groupedContent = groupContent(content, false);
 			
 			if (groupedContent != null) {
 				content.clear();
@@ -159,7 +159,7 @@ public class ListsToContentControls {
 		for (Tc tc : tcFinder.tcList) {
 			
 			content = tc.getContent();
-			groupedContent = groupContent(content);
+			groupedContent = groupContent(content, true);
 			
 			if (groupedContent != null) {
 				content.clear();
@@ -172,7 +172,7 @@ public class ListsToContentControls {
 		///////////////////////////////////////////////
 		// Third, body level content
 		content = mainDocument.getContent();
-		groupedContent = groupContent(content);
+		groupedContent = groupContent(content, false);
 		
 		if (groupedContent != null) {
 			content.clear();
@@ -224,7 +224,11 @@ public class ListsToContentControls {
 		}
 		
 	}
-	
+
+	protected List<Object> groupContent(List<Object> bodyElts, boolean inTable) {
+		return groupContent(bodyElts);
+	}
+
 	protected List<Object> groupContent(List<Object> bodyElts) {
 		
 		// Reset state

@@ -3,8 +3,15 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.6.8
+### Changes
+1. Add `SectionGrouping` preprocess step.
+2. Add new `groupContent` method in `ListsToContentControls` to provide `inTable` parameter to identify if current is in table or not.
+   It is used by subclass.
+3. Fix some numbering style issue.
+
 ## 2023.5.25
-## Changes
+### Changes
 1. Update the `extentToPixelConversionFactor` as `12700 * 72 / UnitsOfMeasurement.DPI`, since we see the original value will always cause the converted image becomes smaller.
 
 ## 2023.5.24

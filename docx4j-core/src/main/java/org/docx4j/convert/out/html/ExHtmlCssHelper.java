@@ -200,6 +200,10 @@ public class ExHtmlCssHelper {
             StyleUtil.apply(curRPr, resolvedRPr);
         }
 
+        if (pPr.getRPr() != null) {
+            StyleUtil.apply(pPr.getRPr(), resolvedRPr);
+        }
+
         HtmlCssHelper.createCss(wmlPackage, resolvedRPr, resolvedPPr, styles);
 
         return styles.toString();

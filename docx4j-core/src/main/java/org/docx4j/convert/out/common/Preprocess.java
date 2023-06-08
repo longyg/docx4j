@@ -24,15 +24,7 @@ import java.util.TreeSet;
 
 import org.docx4j.convert.out.AbstractConversionSettings;
 import org.docx4j.convert.out.ConversionFeatures;
-import org.docx4j.convert.out.common.preprocess.BookmarkMover;
-import org.docx4j.convert.out.common.preprocess.Containerization;
-import org.docx4j.convert.out.common.preprocess.CoverPageSectPrMover;
-import org.docx4j.convert.out.common.preprocess.FieldsCombiner;
-import org.docx4j.convert.out.common.preprocess.FopWorkaroundDisablePageBreakOnFirstParagraph;
-import org.docx4j.convert.out.common.preprocess.FopWorkaroundReplacePageBreakInEachList;
-import org.docx4j.convert.out.common.preprocess.PageBreak;
-import org.docx4j.convert.out.common.preprocess.ParagraphStylesInTableFix;
-import org.docx4j.convert.out.common.preprocess.PartialDeepCopy;
+import org.docx4j.convert.out.common.preprocess.*;
 import org.docx4j.convert.out.html.ListsToContentControls;
 import org.docx4j.events.EventFinished;
 import org.docx4j.events.StartEvent;
@@ -160,6 +152,10 @@ public class Preprocess extends ConversionFeatures {
 			log.debug("PP_COMMON_COVERPAGE_MOVE_SECTPR");
 			CoverPageSectPrMover.process(ret);
 //			log.debug(ret.getMainDocumentPart().getXML());
+		}
+		if (features.contains(PP_HTML_SECTION_GROUPING)) {
+			log.debug("PP_HTML_SECTION_GROUPING");
+			SectionGrouping.process(ret);
 		}
 		if (features.contains(PP_COMMON_CONTAINERIZATION)) {
 			log.debug("PP_COMMON_CONTAINERIZATION");
