@@ -1,7 +1,6 @@
 package org.docx4j.utils;
 
 import org.docx4j.jaxb.Context;
-import org.docx4j.model.PropertyResolver;
 import org.docx4j.model.styles.Node;
 import org.docx4j.model.styles.StyleTree;
 import org.docx4j.model.styles.Tree;
@@ -28,12 +27,8 @@ public class CommonUtil {
     }
 
     public static boolean isHeadingParagraph(MainDocumentPart mainDocument, P p) {
-        PropertyResolver propertyResolver = mainDocument.getPropertyResolver();
-        PPr effectivePPr = propertyResolver.getEffectivePPr(p.getPPr());
-        if (null == effectivePPr) {
-            effectivePPr = p.getPPr();
-        }
-        PPrBase.PStyle pStyle = effectivePPr.getPStyle();
+        if (null == p || null == p.getPPr()) return false;
+        PPrBase.PStyle pStyle = p.getPPr().getPStyle();
         if (null == pStyle || pStyle.getVal() == null) return false;
         return isHeadingStyle(mainDocument, pStyle.getVal());
     }
