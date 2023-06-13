@@ -16,19 +16,12 @@ import org.docx4j.model.listnumbering.AbstractListNumberingDefinition;
 import org.docx4j.model.listnumbering.ListLevel;
 import org.docx4j.model.listnumbering.ListNumberingDefinition;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
-import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.NumberingDefinitionsPart;
-import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
-import org.docx4j.wml.P;
-import org.docx4j.wml.PPr;
+import org.docx4j.openpackaging.parts.WordprocessingML.*;
+import org.docx4j.openpackaging.parts.relationships.Namespaces;
+import org.docx4j.openpackaging.parts.relationships.RelationshipsPart;
+import org.docx4j.relationships.Relationship;
+import org.docx4j.wml.*;
 import org.docx4j.wml.PPrBase.NumPr;
-import org.docx4j.wml.SdtBlock;
-import org.docx4j.wml.SdtContentBlock;
-import org.docx4j.wml.SdtElement;
-import org.docx4j.wml.SdtPr;
-import org.docx4j.wml.Tag;
-import org.docx4j.wml.Tbl;
-import org.docx4j.wml.Tc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,8 +120,51 @@ public class ListsToContentControls {
 		}
 		lc.process();
 	}
-	
+
 	private void process() {
+		if (null == mainDocument) return;
+
+		// process for main document
+		process(mainDocument.getContent());
+
+		// process for other parts, like header, footer etc.
+		RelationshipsPart relPart = null;
+		List<Relationship> relList = null;
+		List<Object> elementList = null;
+		relPart = mainDocument.getRelationshipsPart();
+		relList = relPart.getRelationships().getRelationship();
+		for (Relationship rs : relList) {
+			elementList = null;
+			if (Namespaces.HEADER.equals(rs.getType())) {
+				elementList = ((HeaderPart) relPart.getPart(rs))
+						.getJaxbElement().getContent();
+			} else if (Namespaces.FOOTER.equals(rs.getType())) {
+				elementList = ((FooterPart) relPart.getPart(rs))
+						.getJaxbElement().getContent();
+			} else if (Namespaces.ENDNOTES.equals(rs.getType())) {
+				//elementList = ((EndnotesPart) relPart.getPart(rs)).getContent();
+				elementList = new ArrayList();
+				elementList.addAll(
+						((EndnotesPart) relPart.getPart(rs)).getJaxbElement().getEndnote() );
+			} else if (Namespaces.FOOTNOTES.equals(rs.getType())) {
+				//elementList =  ((FootnotesPart) relPart.getPart(rs)).getContent();
+				elementList = new ArrayList();
+				elementList.addAll(
+						((FootnotesPart) relPart.getPart(rs)).getJaxbElement().getFootnote() );
+			} else if (Namespaces.COMMENTS.equals(rs.getType())) {
+				elementList = new ArrayList();
+				for (Comments.Comment comment : ((CommentsPart) relPart
+						.getPart(rs)).getJaxbElement().getComment()) {
+					elementList.addAll(comment.getEGBlockLevelElts());
+				}
+			}
+			if ((elementList != null) && (!elementList.isEmpty())) {
+				process(elementList);
+			}
+		}
+	}
+	
+	private void process(List<Object> contentElts) {
 		List<Object> content = null;
 		List<Object> groupedContent = null;
 		
@@ -136,7 +172,7 @@ public class ListsToContentControls {
 		// First, contents of existing content controls
 		// .. find the content controls
 		SdtFinder sdtFinder = new SdtFinder();
-		new TraversalUtil(mainDocument.getContent(), sdtFinder);
+		new TraversalUtil(contentElts, sdtFinder);
 		
 		// .. loop through them
 		for (SdtElement sdtEl : sdtFinder.getSdtList()) {
@@ -155,7 +191,7 @@ public class ListsToContentControls {
 		// Second, contents of table cells
 		TcFinder tcFinder = new TcFinder();
 		tcFinder.setTraverseTables(true);
-		new TraversalUtil(mainDocument.getContent(), tcFinder);
+		new TraversalUtil(contentElts, tcFinder);
 		for (Tc tc : tcFinder.tcList) {
 			
 			content = tc.getContent();
@@ -171,7 +207,7 @@ public class ListsToContentControls {
 		
 		///////////////////////////////////////////////
 		// Third, body level content
-		content = mainDocument.getContent();
+		content = contentElts;
 		groupedContent = groupContent(content, false);
 		
 		if (groupedContent != null) {

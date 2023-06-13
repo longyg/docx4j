@@ -183,10 +183,11 @@ public class Containerization {
 					// ie take styles into account
 					// @Fixed by longyg @2023.5.24:
 					// use effective ppr, take styles into account
-					PropertyResolver propertyResolver = mainDocument.getPropertyResolver();
-					PPr effectivePPr = propertyResolver.getEffectivePPr(paragraph.getPPr());
-					currentBorders = effectivePPr.getPBdr();
-					currentShading = effectivePPr.getShd();
+					PPr effectivePPr = getEffectivePPr(mainDocument, paragraph.getPPr());
+					if (null != effectivePPr) {
+						currentBorders = effectivePPr.getPBdr();
+						currentShading = effectivePPr.getShd();
+					}
 					// currentBorders = paragraph.getPPr().getPBdr();
 					// currentShading = paragraph.getPPr().getShd();
 				}
@@ -238,6 +239,20 @@ public class Containerization {
 			lastShading = currentShading;  
 		}
 		return resultElts;
+	}
+
+	private static PPr getEffectivePPr(MainDocumentPart mainDocument, PPr pPr) {
+		PPr effectivePPr = null;
+		if (null != mainDocument) {
+			PropertyResolver propertyResolver = mainDocument.getPropertyResolver();
+			if (null != propertyResolver) {
+				effectivePPr = propertyResolver.getEffectivePPr(pPr);
+			}
+		}
+		if (null == effectivePPr) {
+			effectivePPr = pPr;
+		}
+		return effectivePPr;
 	}
 
 	// @Fixed by longyg @2023.5.24:

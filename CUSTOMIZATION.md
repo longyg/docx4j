@@ -3,6 +3,10 @@
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
 
+## 2023.6.13:
+### Changes
+1. Enhance `ListsToContentControls`, also can collect lists for header/footer etc. other parts.
+
 ## 2023.6.8
 ### Changes
 1. Add `SectionGrouping` preprocess step.
