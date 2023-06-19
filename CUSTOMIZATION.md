@@ -2,11 +2,15 @@
 
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
-## 2023.6.14:
-### Changes:
+## 2023.6.19
+### Changes
+1. Implements `DStrike` class to support <w:dstrike />
+
+## 2023.6.14
+### Changes
 1. Add customized extension point `AbstractPlaceholderPageHandler`.
 
-## 2023.6.13:
+## 2023.6.13
 ### Changes
 1. Enhance `ListsToContentControls`, also can collect lists for header/footer etc. other parts.
 

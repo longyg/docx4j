@@ -39,18 +39,8 @@ import org.docx4j.model.properties.paragraph.SpaceAfter;
 import org.docx4j.model.properties.paragraph.SpaceBefore;
 import org.docx4j.model.properties.paragraph.Tabs;
 import org.docx4j.model.properties.paragraph.TextAlignmentVertical;
-import org.docx4j.model.properties.run.Bold;
-import org.docx4j.model.properties.run.FontColor;
-import org.docx4j.model.properties.run.FontSize;
-import org.docx4j.model.properties.run.HighlightColor;
-import org.docx4j.model.properties.run.Italics;
-import org.docx4j.model.properties.run.Lang;
-import org.docx4j.model.properties.run.RBorder;
-import org.docx4j.model.properties.run.RShading;
-import org.docx4j.model.properties.run.Strike;
+import org.docx4j.model.properties.run.*;
 import org.docx4j.model.properties.run.TextDirection;
-import org.docx4j.model.properties.run.Underline;
-import org.docx4j.model.properties.run.VerticalAlignment;
 import org.docx4j.model.properties.table.BorderBottom;
 import org.docx4j.model.properties.table.BorderLeft;
 import org.docx4j.model.properties.table.BorderRight;
@@ -298,6 +288,10 @@ public class PropertyFactory {
 //			dest.setSpecVanish(rPr.getSpecVanish());
 		if (rPr.getStrike() != null)
 			properties.add(new Strike(rPr.getStrike() ) );
+		// @Fixed by longyg @2023.6.19:
+		// support <w:dstrike />
+		if (rPr.getDstrike() != null)
+			properties.add(new DStrike(rPr.getDstrike()));
 		if (rPr.getSz() != null)
 			properties.add(new FontSize(rPr.getSz() ) );
 //		if (rPr.getSzCs() != null)
@@ -480,6 +474,10 @@ public class PropertyFactory {
 //			dest.setSpecVanish(rPr.getSpecVanish());
 		if (rPr.getStrike() != null)
 			properties.add(new Strike(rPr.getStrike() ) );
+		// @Fixed by longyg @2023.6.19:
+		// support <w:dstrike />
+		if (rPr.getDstrike() != null)
+			properties.add(new DStrike(rPr.getDstrike()));
 		if (rPr.getSz() != null)
 			properties.add(new FontSize(rPr.getSz() ) );
 //		if (rPr.getSzCs() != null)
