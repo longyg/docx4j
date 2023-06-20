@@ -139,7 +139,7 @@ public class ExHtmlCssHelper {
         }
     }
 
-    private static String resolveNumberingStyles(WordprocessingMLPackage wmlPackage, StyleTree styleTree, PPr pPr, PPrBase.NumPr numPr) {
+    public static String resolveNumberingStyles(WordprocessingMLPackage wmlPackage, StyleTree styleTree, PPr pPr, PPrBase.NumPr numPr) {
         StringBuilder styles = new StringBuilder();
 
         Deque<RPr> rPrStack = new LinkedList<>();
