@@ -64,10 +64,10 @@ public class Underline extends AbstractRunProperty {
             u.setVal(UnderlineEnumeration.NONE);
         } else if (cssText.contains("underline")) {
             UnderlineEnumeration val = UnderlineEnumeration.SINGLE;
-			for (Map.Entry<UnderlineEnumeration, HtmlUnderlineStyleEnum> entry : getStylesMap().entrySet()) {
-				if (cssText.contains(entry.getValue().value())) {
-					val = entry.getKey();
-					cssText = cssText.replace(entry.getValue().value(), "");
+			for (Map.Entry<HtmlUnderlineStyleEnum, UnderlineEnumeration> entry : HTML_TO_WORD_MAP.entrySet()) {
+				if (cssText.contains(entry.getKey().value())) {
+					val = entry.getValue();
+					cssText = cssText.replace(entry.getKey().value(), "");
 					break;
 				}
 			}
@@ -147,6 +147,7 @@ public class Underline extends AbstractRunProperty {
 	// @Fixed by longyg @2023.4.18
 	// handle text-decoration with color and style
 	protected static final Map<UnderlineEnumeration, HtmlUnderlineStyleEnum> STYLES_MAP = new HashMap<>();
+	protected static final Map<HtmlUnderlineStyleEnum, UnderlineEnumeration> HTML_TO_WORD_MAP = new HashMap<>();
 	static {
 		STYLES_MAP.put(UnderlineEnumeration.DOTTED, HtmlUnderlineStyleEnum.DOTTED);
 		STYLES_MAP.put(UnderlineEnumeration.DOTTED_HEAVY, HtmlUnderlineStyleEnum.DOTTED);
@@ -155,6 +156,13 @@ public class Underline extends AbstractRunProperty {
 		STYLES_MAP.put(UnderlineEnumeration.DASHED_HEAVY, HtmlUnderlineStyleEnum.DASHED);
 		STYLES_MAP.put(UnderlineEnumeration.WAVE, HtmlUnderlineStyleEnum.WAVY);
 		STYLES_MAP.put(UnderlineEnumeration.WAVY_HEAVY, HtmlUnderlineStyleEnum.WAVY);
+	}
+	static {
+		HTML_TO_WORD_MAP.put(HtmlUnderlineStyleEnum.DOTTED, UnderlineEnumeration.DOTTED);
+		HTML_TO_WORD_MAP.put(HtmlUnderlineStyleEnum.WAVY, UnderlineEnumeration.WAVE);
+		HTML_TO_WORD_MAP.put(HtmlUnderlineStyleEnum.DOUBLE, UnderlineEnumeration.DOUBLE);
+		HTML_TO_WORD_MAP.put(HtmlUnderlineStyleEnum.DASHED, UnderlineEnumeration.DASH);
+		HTML_TO_WORD_MAP.put(HtmlUnderlineStyleEnum.SOLID, UnderlineEnumeration.SINGLE);
 	}
 
 	public Map<UnderlineEnumeration, HtmlUnderlineStyleEnum> getStylesMap() {

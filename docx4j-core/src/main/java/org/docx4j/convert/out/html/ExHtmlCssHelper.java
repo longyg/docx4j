@@ -204,7 +204,7 @@ public class ExHtmlCssHelper {
             StyleUtil.apply(pPr.getRPr(), resolvedRPr);
         }
 
-        HtmlCssHelper.createCss(wmlPackage, resolvedRPr, resolvedPPr, styles);
+        HtmlCssHelper.createCss(wmlPackage, resolvedRPr, resolvedPPr, styles, true);
 
         return styles.toString();
     }
@@ -218,7 +218,7 @@ public class ExHtmlCssHelper {
             if (s.getRPr() == null) {
                 log.warn("! null rPr for character style '{}'", s.getStyleId());
             } else {
-                HtmlCssHelper.createCss(wmlPackage, s.getRPr(), result);
+                HtmlCssHelper.createCss(wmlPackage, s.getRPr(), result, true);
             }
             result.append("}\n");
         });
@@ -260,7 +260,7 @@ public class ExHtmlCssHelper {
                 HtmlCssHelper.createCss(wmlPackage, s.getPPr(), result, false, false);
             }
             if (s.getRPr() != null) {
-                HtmlCssHelper.createCss(wmlPackage, s.getRPr(), result);
+                HtmlCssHelper.createCss(wmlPackage, s.getRPr(), result, true);
             }
             result.append("}\n");
         });
@@ -345,7 +345,7 @@ public class ExHtmlCssHelper {
         if (s.getRPr() == null) {
             log.debug("null rPr for style '{}'", s.getStyleId());
         } else {
-            HtmlCssHelper.createCss(wmlPackage, s.getRPr(), sb);
+            HtmlCssHelper.createCss(wmlPackage, s.getRPr(), sb, true);
         }
         appendHeadingsFontStyle(wmlPackage, s, sb);
         sb.append("}\n");
@@ -358,7 +358,7 @@ public class ExHtmlCssHelper {
             HtmlCssHelper.createCss(opcPackage, ctTblStylePr.getPPr(), result, false, false);
         }
         if (null != ctTblStylePr.getRPr()) {
-            HtmlCssHelper.createCss(opcPackage, ctTblStylePr.getRPr(), result);
+            HtmlCssHelper.createCss(opcPackage, ctTblStylePr.getRPr(), result, true);
         }
         result.append("}\n");
     }

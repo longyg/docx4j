@@ -2526,8 +2526,20 @@ public class StyleUtil {
 		if (!isEmpty(source)) {
 			if (destination == null)
 				destination = Context.getWmlObjectFactory().createU();
-			
-			destination.setVal(source.getVal());
+			// @Fixed by longyg @2023.6.28:
+			// only if the attribute of source is not null, then apply to destination
+			if (source.getVal() != null) {
+				destination.setVal(source.getVal());
+			}
+			if (source.getColor() != null) {
+				destination.setColor(source.getColor());
+			}
+			if (source.getThemeShade() != null) {
+				destination.setThemeShade(source.getThemeShade());
+			}
+			if (source.getThemeTint() != null) {
+				destination.setThemeTint(source.getThemeTint());
+			}
 		}
 		return destination;
 	}

@@ -299,11 +299,15 @@ public class HtmlCssHelper {
     	}    
     }
 
+	public static void createCss(OpcPackage opcPackage, RPr rPr, PPr pPr, StringBuilder result) {
+		createCss(opcPackage, rPr, pPr, result, false);
+	}
+
 	// @Fixed by longyg @2023.5.11
 	// add new function for handling auto font color
-	public static void createCss(OpcPackage opcPackage, RPr rPr, PPr pPr, StringBuilder result) {
+	public static void createCss(OpcPackage opcPackage, RPr rPr, PPr pPr, StringBuilder result, boolean ignoreStrikeAndU) {
 
-		List<Property> properties = PropertyFactory.createProperties(opcPackage, rPr, pPr);
+		List<Property> properties = PropertyFactory.createProperties(opcPackage, rPr, pPr, ignoreStrikeAndU);
 
 		// @Fixed by longyg @2023.4.18
 		// merge strike and underline together to one text-decoration
@@ -322,10 +326,14 @@ public class HtmlCssHelper {
 		// merge strike and underline together to one text-decoration
 		appendTextDecoration(strike, underline, result);
 	}
-    
-    public static void createCss(OpcPackage opcPackage, RPr rPr, StringBuilder result) {
 
-    	List<Property> properties = PropertyFactory.createProperties(opcPackage, rPr);
+	public static void createCss(OpcPackage opcPackage, RPr rPr, StringBuilder result) {
+		createCss(opcPackage, rPr, result, false);
+	}
+    
+    public static void createCss(OpcPackage opcPackage, RPr rPr, StringBuilder result, boolean ignoreStrikeAndU) {
+
+    	List<Property> properties = PropertyFactory.createProperties(opcPackage, rPr, ignoreStrikeAndU);
 
 		// @Fixed by longyg @2023.4.18
 		// merge strike and underline together to one text-decoration

@@ -210,6 +210,10 @@ public class PropertyFactory {
 	}
 
 	public static List<Property> createProperties(OpcPackage wmlPackage, RPr rPr) {
+		return createProperties(wmlPackage, rPr, false);
+	}
+
+	public static List<Property> createProperties(OpcPackage wmlPackage, RPr rPr, boolean ignoreStrikeAndU) {
 		
 		List<Property> properties = new ArrayList<Property>();
 		
@@ -286,17 +290,17 @@ public class PropertyFactory {
 			properties.add(new org.docx4j.model.properties.run.Spacing(rPr.getSpacing()));
 //		if (rPr.getSpecVanish() != null)
 //			dest.setSpecVanish(rPr.getSpecVanish());
-		if (rPr.getStrike() != null)
+		if (!ignoreStrikeAndU && rPr.getStrike() != null)
 			properties.add(new Strike(rPr.getStrike() ) );
 		// @Fixed by longyg @2023.6.19:
 		// support <w:dstrike />
-		if (rPr.getDstrike() != null)
+		if (!ignoreStrikeAndU && rPr.getDstrike() != null)
 			properties.add(new DStrike(rPr.getDstrike()));
 		if (rPr.getSz() != null)
 			properties.add(new FontSize(rPr.getSz() ) );
 //		if (rPr.getSzCs() != null)
 //			dest.setSzCs(rPr.getSzCs());
-		if (rPr.getU() != null)
+		if (!ignoreStrikeAndU && rPr.getU() != null)
 			properties.add(new Underline(rPr.getU() ) );
 //		if (rPr.getVanish() != null)
 //			dest.setVanish(rPr.getVanish());
@@ -393,6 +397,10 @@ public class PropertyFactory {
 	}
 
 	public static List<Property> createProperties(OpcPackage wmlPackage, RPr rPr, PPr pPr) {
+		return createProperties(wmlPackage, rPr, pPr, false);
+	}
+
+	public static List<Property> createProperties(OpcPackage wmlPackage, RPr rPr, PPr pPr, boolean ignoreStrikeAndU) {
 
 		List<Property> properties = new ArrayList<Property>();
 
@@ -472,18 +480,21 @@ public class PropertyFactory {
 			properties.add(new org.docx4j.model.properties.run.Spacing(rPr.getSpacing()));
 //		if (rPr.getSpecVanish() != null)
 //			dest.setSpecVanish(rPr.getSpecVanish());
-		if (rPr.getStrike() != null)
-			properties.add(new Strike(rPr.getStrike() ) );
+		if (!ignoreStrikeAndU && rPr.getStrike() != null) {
+			properties.add(new Strike(rPr.getStrike()));
+		}
 		// @Fixed by longyg @2023.6.19:
 		// support <w:dstrike />
-		if (rPr.getDstrike() != null)
+		if (!ignoreStrikeAndU && rPr.getDstrike() != null) {
 			properties.add(new DStrike(rPr.getDstrike()));
+		}
 		if (rPr.getSz() != null)
 			properties.add(new FontSize(rPr.getSz() ) );
 //		if (rPr.getSzCs() != null)
 //			dest.setSzCs(rPr.getSzCs());
-		if (rPr.getU() != null)
-			properties.add(new Underline(rPr.getU() ) );
+		if (!ignoreStrikeAndU && rPr.getU() != null) {
+			properties.add(new Underline(rPr.getU()));
+		}
 //		if (rPr.getVanish() != null)
 //			dest.setVanish(rPr.getVanish());
 		if (rPr.getVertAlign() != null)
@@ -509,6 +520,10 @@ public class PropertyFactory {
 	}
 
 	public static List<Property> createProperties(OpcPackage wmlPackage, ParaRPr rPr) {
+		return createProperties(wmlPackage, rPr, false);
+	}
+
+	public static List<Property> createProperties(OpcPackage wmlPackage, ParaRPr rPr, boolean ignoreStrikeAndU) {
 		
 		List<Property> properties = new ArrayList<Property>();
 		
@@ -580,13 +595,16 @@ public class PropertyFactory {
 		
 //		if (rPr.getSpecVanish() != null)
 //			dest.setSpecVanish(rPr.getSpecVanish());
-		if (rPr.getStrike() != null)
+		if (!ignoreStrikeAndU && rPr.getStrike() != null)
 			properties.add(new Strike(rPr.getStrike() ) );
+		if (!ignoreStrikeAndU && rPr.getDstrike() != null) {
+			properties.add(new DStrike(rPr.getDstrike()));
+		}
 		if (rPr.getSz() != null)
 			properties.add(new FontSize(rPr.getSz() ) );
 //		if (rPr.getSzCs() != null)
 //			dest.setSzCs(rPr.getSzCs());
-		if (rPr.getU() != null)
+		if (!ignoreStrikeAndU && rPr.getU() != null)
 			properties.add(new Underline(rPr.getU() ) );
 //		if (rPr.getVanish() != null)
 //			dest.setVanish(rPr.getVanish());
