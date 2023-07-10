@@ -354,9 +354,13 @@ public class ConversionSectionWrapperFactory {
 			} else {
 				log.error("Handle " + sdtBlock.getParent().getClass().getName());
 			}
-			int index = parentList.indexOf(sdtBlock);
-			parentList.remove(index);
-			parentList.addAll(index, sdtBlock.getSdtContent().getContent());				
+			// @Fixed by longyg @2023.7.7:
+			// Fix NullPointerException bug
+			if (null != parentList) {
+				int index = parentList.indexOf(sdtBlock);
+				parentList.remove(index);
+				parentList.addAll(index, sdtBlock.getSdtContent().getContent());
+			}
 		}
 		
 //		if (log.isDebugEnabled()) {
