@@ -1,5 +1,6 @@
 package org.docx4j.utils;
 
+import org.docx4j.convert.out.html.HTMLConversionContext;
 import org.docx4j.jaxb.Context;
 import org.docx4j.model.styles.Node;
 import org.docx4j.model.styles.StyleTree;
@@ -7,7 +8,6 @@ import org.docx4j.model.styles.Tree;
 import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
 import org.docx4j.wml.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,12 +18,12 @@ public class CommonUtil {
     private CommonUtil() {
     }
 
-    private static final List<String> HEADING_NAMES = new ArrayList<>();
+    private static final int MIN_HEADING_LVL = 1;
+    private static final int MAX_HEADING_LVL = 6;
+    public static final List<String> HEADINGS = List.of("h1", "h2", "h3", "h4", "h5", "h6");
 
-    static {
-        for (int i = 1; i <= 6; i++) {
-            HEADING_NAMES.add("heading " + i);
-        }
+    public static boolean isHeadingNode(String nodeName) {
+        return HEADINGS.contains(nodeName);
     }
 
     public static boolean isHeadingParagraph(MainDocumentPart mainDocument, P p) {
@@ -34,29 +34,41 @@ public class CommonUtil {
     }
 
     public static boolean isHeadingStyle(MainDocumentPart mainDocument, String styleId) {
-        StyleTree styleTree = mainDocument.getStyleTree();
-        if (null == styleTree) return false;
-        Tree<StyleTree.AugmentedStyle> paragraphStylesTree = styleTree.getParagraphStylesTree();
-        if (paragraphStylesTree == null) return false;
-        Node<StyleTree.AugmentedStyle> styleNode = paragraphStylesTree.get(styleId);
-        return isHeadingStyleNode(styleNode);
+        return getHeadingLevel(mainDocument.getStyleTree(), styleId) != -1;
     }
 
-    public static boolean isHeadingStyleNode(Node<StyleTree.AugmentedStyle> styleNode) {
-        if (null == styleNode) return false;
+    public static int getHeadingLevel(HTMLConversionContext context, String styleId) {
+        return getHeadingLevel(context.getStyleTree(), styleId);
+    }
+
+    public static int getHeadingLevel(StyleTree styleTree, String styleId) {
+        if (null == styleTree) return -1;
+        Tree<StyleTree.AugmentedStyle> paragraphStylesTree = styleTree.getParagraphStylesTree();
+        if (paragraphStylesTree == null) return -1;
+        Node<StyleTree.AugmentedStyle> styleNode = paragraphStylesTree.get(styleId);
+        return getHeadingLevel(styleNode);
+    }
+
+    public static int getHeadingLevel(Node<StyleTree.AugmentedStyle> styleNode) {
+        if (null == styleNode) return -1;
         StyleTree.AugmentedStyle augmentedStyle = styleNode.getData();
         Node<StyleTree.AugmentedStyle> parentStyleNode = styleNode.getParent();
-        if (null == augmentedStyle) {
-            return isHeadingStyleNode(parentStyleNode);
+        if (null == augmentedStyle || null == augmentedStyle.getStyle()) {
+            return getHeadingLevel(parentStyleNode);
         }
         Style style = augmentedStyle.getStyle();
-        if (null == style) {
-            return isHeadingStyleNode(parentStyleNode);
+        int lvl = getHeadingLevel(style);
+        return lvl == -1 ? getHeadingLevel(parentStyleNode) : lvl;
+    }
+
+    public static int getHeadingLevel(Style style) {
+        if (style.getPPr() == null || style.getPPr().getOutlineLvl() == null) return -1;
+        PPrBase.OutlineLvl outlineLvl = style.getPPr().getOutlineLvl();
+        int lvl = outlineLvl.getVal().intValue();
+        if (lvl >= MIN_HEADING_LVL - 1 && lvl <= MAX_HEADING_LVL - 1) {
+            return lvl + 1; // supported heading levels: 1 - 6
         }
-        if (HEADING_NAMES.contains(style.getName().getVal())) {
-            return true;
-        }
-        return isHeadingStyleNode(parentStyleNode);
+        return -1;
     }
 
     public static SdtBlock createSdtBlock(String tagValue) {
