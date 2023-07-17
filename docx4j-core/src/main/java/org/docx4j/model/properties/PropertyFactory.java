@@ -311,17 +311,7 @@ public class PropertyFactory {
 //		if (rPr.getWebHidden() != null)
 //			dest.setWebHidden(rPr.getWebHidden());
 
-		// small caps enabled
-		if (rPr.getSmallCaps() != null && rPr.getSmallCaps().isVal()) {
-			properties.add(new AdHocProperty("font-variant-caps", "small-caps",
-					"font-variant-caps", "small-caps"));
-		}
-		// all caps enabled
-		// Note: in CSS, it is not able to present all big caps, so we just apply all small caps for this.
-		if (rPr.getCaps() != null && rPr.getCaps().isVal()) {
-			properties.add(new AdHocProperty("text-transform", "uppercase",
-					"text-transform", "uppercase"));
-		}
+		addCapsStyle(rPr, properties);
 		
 		return properties;		
 	}
@@ -504,19 +494,36 @@ public class PropertyFactory {
 //		if (rPr.getWebHidden() != null)
 //			dest.setWebHidden(rPr.getWebHidden());
 
+		addCapsStyle(rPr, properties);
+
+		return properties;
+	}
+
+	// @Fixed by longyg @2023.7.17
+	// support small-caps and all-caps
+	private static void addCapsStyle(RPr rPr, List<Property> properties) {
+		String none = "none";
 		// small caps enabled
-		if (rPr.getSmallCaps() != null && rPr.getSmallCaps().isVal()) {
-			properties.add(new AdHocProperty("font-variant", "small-caps",
-					"font-variant", "small-caps"));
+		if (rPr.getSmallCaps() != null) {
+			String fontVariant = "font-variant";
+			String smallCaps = "small-caps";
+			if (rPr.getSmallCaps().isVal()) {
+				properties.add(new AdHocProperty(fontVariant, smallCaps, fontVariant, smallCaps));
+			} else {
+				properties.add(new AdHocProperty(fontVariant, none, fontVariant, none));
+			}
 		}
 		// all caps enabled
 		// Note: in CSS, it is not able to present all big caps, so we just apply all small caps for this.
-		if (rPr.getCaps() != null && rPr.getCaps().isVal()) {
-			properties.add(new AdHocProperty("text-transform", "uppercase",
-					"text-transform", "uppercase"));
+		if (rPr.getCaps() != null) {
+			String textTransform = "text-transform";
+			String uppercase = "uppercase";
+			if (rPr.getCaps().isVal()) {
+				properties.add(new AdHocProperty(textTransform, uppercase, textTransform, uppercase));
+			} else {
+				properties.add(new AdHocProperty(textTransform, none, textTransform, none));
+			}
 		}
-
-		return properties;
 	}
 
 	public static List<Property> createProperties(OpcPackage wmlPackage, ParaRPr rPr) {
