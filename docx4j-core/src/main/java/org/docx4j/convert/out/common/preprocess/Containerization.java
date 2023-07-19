@@ -160,7 +160,9 @@ public class Containerization {
 		CTShd lastShading = null;
 		CTShd currentShading = null;
 		P paragraph = null;
-		
+		List<P> sameBorderParagraphs = new ArrayList<>();
+		List<P> sameShadingParagraphs = new ArrayList<>();
+
 		for (Object o : bodyElts) {
 			Object unwrapped;
 			if (o instanceof JAXBElement) {
@@ -194,6 +196,7 @@ public class Containerization {
 
 				if ( bordersChanged(currentBorders, lastBorders )) {
 					// could mean null to borders; borders to null; or bordersA to bordersB
+					borderChanged(sdtBorders, resultElts);
 					if (currentBorders == null) {
 						sdtBorders = null;
 					} else {
@@ -204,6 +207,7 @@ public class Containerization {
 				
 				if (shadingChanged(currentShading, lastShading )) {
 					// handle change to shading before addElement
+					shadingChanged(sdtBorders, sdtShading, resultElts);
 					if (currentShading == null) {
 						sdtShading = null;
 					} else {
@@ -222,6 +226,15 @@ public class Containerization {
 				}
 			}
 			else if (unwrapped instanceof Tbl) {
+				// @Fixed by longyg @2023.7.18:
+				// Fix bug, here should reset the current borders and shading if run into table after P,
+				// so that the table won't be grouped into div.
+				currentBorders = null;
+				currentShading = null;
+				borderChanged(sdtBorders, resultElts);
+				shadingChanged(sdtBorders, sdtShading, resultElts);
+				sdtBorders = null;
+				sdtShading = null;
 				groupTable(mainDocument, (Tbl)unwrapped);
 			}
 			if (sdtShading!=null) {
@@ -239,6 +252,31 @@ public class Containerization {
 			lastShading = currentShading;  
 		}
 		return resultElts;
+	}
+
+	/**
+	 * if there is no multiple contents in borders sdt block, then no need to have this sdt
+	 */
+	private static void borderChanged(SdtBlock sdtBorders, List<Object> resultElts) {
+		if (null != sdtBorders && sdtBorders.getSdtContent().getContent().size() < 2) {
+			resultElts.remove(sdtBorders);
+			resultElts.addAll(sdtBorders.getSdtContent().getContent());
+		}
+	}
+
+	/**
+	 * if there is no multiple contents in shading sdt block, then no need to have this sdt
+	 */
+	private static void shadingChanged(SdtBlock sdtBorders, SdtBlock sdtShading, List<Object> resultElts) {
+		if (null != sdtShading && sdtShading.getSdtContent().getContent().size() < 2) {
+			if (sdtBorders != null) {
+				sdtBorders.getSdtContent().getContent().remove(sdtShading);
+				sdtBorders.getSdtContent().getContent().addAll(sdtShading.getSdtContent().getContent());
+			} else {
+				resultElts.remove(sdtShading);
+				resultElts.addAll(sdtShading.getSdtContent().getContent());
+			}
+		}
 	}
 
 	private static PPr getEffectivePPr(MainDocumentPart mainDocument, PPr pPr) {

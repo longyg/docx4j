@@ -2,6 +2,10 @@
 
 Here are customization histories made based on official [plutext/docx4j](https://github.com/plutext/docx4j),
 the histories are listed in descending order by date.
+## 2023.7.18
+### Changes
+1. Enhance `Containerization` to avoid grouping single paragraph into div. And avoid grouping table into div together with paragraph.
+
 ## 2023.6.19
 ### Changes
 1. Implements `DStrike` class to support <w:dstrike />
