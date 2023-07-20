@@ -70,9 +70,11 @@ public class RunFontSelectorCalibriCheckBoxTest {
 		}
 		
 		//fontMapper.put("Calibri", font);
-		fontMapper.put(FONT_WORD_2016_USES, font); 
-		// static String[] expectedFont = { "MS Gothic"}; // Word sometime prior to 2016? 
-		 String[] expectedFont = { fontMapper.get(FONT_WORD_2016_USES).getName() }; 
+		if (null != font) {
+			fontMapper.put(FONT_WORD_2016_USES, font);
+			// static String[] expectedFont = { "MS Gothic"}; // Word sometime prior to 2016?
+			String[] expectedFont = {fontMapper.get(FONT_WORD_2016_USES).getName()};
+		}
 		
 //		for(Entry<String, PhysicalFont> entry : PhysicalFonts.getPhysicalFonts().entrySet() ) {
 //			System.out.println(entry.getKey());
