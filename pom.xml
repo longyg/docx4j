@@ -20,43 +20,6 @@
     <packaging>pom</packaging>
 
     <name>docx4j parent</name>
-    
-    <modules>
-        <module>docx4j-openxml-objects</module>
-        <module>docx4j-openxml-objects-pml</module>
-        <module>docx4j-openxml-objects-sml</module>
-        <module>docx4j-core</module>
-        
-        <module>docx4j-core-tests</module> <!--  needs docx4j-JAXB-Internal  -->
-        <module>docx4j-diffx</module>
-        <module>docx4j-docx-anon</module> 
-        
-        <module>docx4j-export-fo</module>        
-        <module>docx4j-conversion-via-microsoft-graph</module>
-        <module>docx4j-documents4j-remote</module>                
-        <module>docx4j-documents4j-local</module>        
-        
-        <module>docx4j-JAXB-MOXy</module>
-        <module>docx4j-JAXB-ReferenceImpl</module>
-        
-        <module>docx4j-samples-resources</module>
-        <module>docx4j-samples-docx4j</module>
-        <module>docx4j-samples-docx-diffx</module>
-        <module>docx4j-samples-docx-export-fo</module>
-        <module>docx4j-samples-pptx4j</module>
-        <module>docx4j-samples-xlsx4j</module>
-        <module>docx4j-samples-glox4j</module>
-        
-        <module>docx4j-samples-conversion-via-microsoft-graph</module>
-
-        <module>docx4j-samples-documents4j-remote</module>        
-        <module>docx4j-samples-documents4j-local</module>        
-        
-        <module>docx4j-bundle</module>        
-        
-        <module>docx4j-legacy-service</module>        
-        
-    </modules>
 	
 	<description>
 		docx4j is a library which helps you to work with the Office Open
@@ -379,15 +342,6 @@
 	            <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
 	        </properties>
 	    </profile>
-	    <profile>
-	        <id>jdk-11-config</id>
-	        <activation>
-	            <jdk>[11,)</jdk>
-	        </activation>
-	        <properties>
-	            <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-	        </properties>
-	    </profile>
 
 
 		<profile>
@@ -523,6 +477,68 @@
 				</plugins>
 			</build>
 
+		</profile>
+
+		<profile>
+			<id>all-modules</id>
+			<activation>
+				<!--<jdk>[11,)</jdk>-->
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+			</properties>
+			<modules>
+				<module>docx4j-openxml-objects</module>
+				<module>docx4j-openxml-objects-pml</module>
+				<module>docx4j-openxml-objects-sml</module>
+				<module>docx4j-core</module>
+
+				<module>docx4j-core-tests</module> <!--  needs docx4j-JAXB-Internal  -->
+				<module>docx4j-diffx</module>
+				<module>docx4j-docx-anon</module>
+
+				<module>docx4j-export-fo</module>
+				<module>docx4j-conversion-via-microsoft-graph</module>
+				<module>docx4j-documents4j-remote</module>
+				<module>docx4j-documents4j-local</module>
+
+				<module>docx4j-JAXB-MOXy</module>
+				<module>docx4j-JAXB-ReferenceImpl</module>
+
+				<module>docx4j-samples-resources</module>
+				<module>docx4j-samples-docx4j</module>
+				<module>docx4j-samples-docx-diffx</module>
+				<module>docx4j-samples-docx-export-fo</module>
+				<module>docx4j-samples-pptx4j</module>
+				<module>docx4j-samples-xlsx4j</module>
+				<module>docx4j-samples-glox4j</module>
+
+				<module>docx4j-samples-conversion-via-microsoft-graph</module>
+
+				<module>docx4j-samples-documents4j-remote</module>
+				<module>docx4j-samples-documents4j-local</module>
+
+				<module>docx4j-bundle</module>
+
+				<module>docx4j-legacy-service</module>
+
+			</modules>
+		</profile>
+
+		<!--
+			This profile is to control what modules to be deployed to central maven repo,
+		 	if you want to deploy other modules, add relevant modules.
+		 -->
+		<profile>
+			<id>deploy-modules</id>
+			<modules>
+				<module>docx4j-openxml-objects</module>
+				<module>docx4j-openxml-objects-pml</module>
+				<module>docx4j-openxml-objects-sml</module>
+				<module>docx4j-core</module>
+				<module>docx4j-JAXB-ReferenceImpl</module>
+			</modules>
 		</profile>
 
    </profiles>
